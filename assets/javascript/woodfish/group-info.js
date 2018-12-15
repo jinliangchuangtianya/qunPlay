@@ -27,6 +27,23 @@ cc.Class({
             title: '加载中',
             mask: true
         })
+
+        wx.showShareMenu({
+            withShareTicket: true
+          })
+        wx.onShareAppMessage((res)=>{
+            let type = res.from;
+            let gid = wx.getStorageSync('gid'),query = "share=true&sceneto=woodfish";
+            if(!!gid){
+                query += "&gid="+gid;
+            }
+            return{
+                title:"快来帮我敲两下！",
+                imageUrl:"https://jx-game.oss-cn-beijing.aliyuncs.com/qunPlay/img/muyu_share.png",
+                query:query
+            }
+        })
+
         this.back.on("touchstart", function(){
             common.opt.notLoad = true;
             cc.director.loadScene("woodfish")

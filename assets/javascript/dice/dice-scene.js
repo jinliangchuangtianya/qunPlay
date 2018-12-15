@@ -7,12 +7,32 @@ cc.Class({
         dice:cc.Prefab,
         isize:cc.Node,
         music:cc.AudioClip,
-        group:cc.Node
+        group:cc.Node,
+        addBtn:cc.Node,
+        subBtn:cc.Node,
+        diceLabel:cc.Label,
+        yaoBtn:cc.Node
     },
 
     // LIFE-CYCLE CALLBACKS:
 
     onLoad () {
+
+        if(window.wx){
+            wx.showShareMenu({
+                withShareTicket: true
+              })
+            wx.onShareAppMessage((res)=>{
+                let query = "share=true&sceneto=dice";
+                return{
+                    title:"一起玩骰子",
+                    imageUrl:"https://jx-game.oss-cn-beijing.aliyuncs.com/qunPlay/img/share.jpg",
+                    query:query
+                }
+            })
+        }
+
+
         this.diceCount = 6;
         this.changeCount = 6;
         this.diceArr = [];
@@ -20,6 +40,11 @@ cc.Class({
         this.isPlay = false;
  
         this.init();
+
+        this.addBtn.on("touchstart", this.changeCountHandel.bind(this, 'add'));
+        this.subBtn.on("touchstart", this.changeCountHandel.bind(this, 'sub'));
+        this.yaoBtn.on("touchstart", this.playIng, this);
+        this.addBtn.opacity = 76;
 
         if(!!window.wx){
             wx.onAccelerometerChange(function (res) {
@@ -31,6 +56,31 @@ cc.Class({
 
         this.group.getChildByName("yao").on("touchstart", this.playIng, this);
        
+    },
+    changeCountHandel(type){
+        //console.warn(e, type, 123)
+        if(type == 'add'){
+            this.changeCount += 1;
+            if(this.changeCount >= 6){
+                this.changeCount = 6;
+            }
+        }
+        else if(type == 'sub'){
+            this.changeCount -= 1;
+            if(this.changeCount <= 1){
+                this.changeCount = 1;
+            }
+        }
+        if(this.changeCount == 6){
+            this.addBtn.opacity = 76;
+        }
+        else if(this.changeCount == 1){
+            this.subBtn.opacity = 76;
+        }
+        else{
+            this.addBtn.opacity = this.subBtn.opacity = 255;
+        }
+        this.diceLabel.string = this.changeCount;
     },
     playIng(){
         if(this.isPlay) return;
@@ -44,10 +94,9 @@ cc.Class({
         }
         setTimeout(()=>{
             this.isPlay = false
-        },1000)
+        },600)
     },
     init () {
-       
         cc.audioEngine.playEffect(this.music, false);
         this.diceArr = [];
         this.node.removeAllChildren();

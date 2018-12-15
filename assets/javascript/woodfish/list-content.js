@@ -14,6 +14,9 @@ cc.Class({
 
 
     onLoad () {
+
+        wx.hideShareMenu();
+
         wx.showLoading({
             title: '加载中',
             mask: true

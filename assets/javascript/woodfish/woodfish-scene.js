@@ -54,7 +54,8 @@ cc.Class({
         this.mySequ = cc.sequence(
             cc.spawn(
                 cc.moveTo(0.2, 0, targetY),
-                cc.scaleTo(0.2, 0, 0)
+                cc.scaleTo(0.2, 0, 0),
+                cc.fadeTo(0.2,0)
             ),
             myMvoeCallFun
         );
@@ -286,6 +287,7 @@ cc.Class({
         if( this.isRuning ){
             this.muyuRun.stopAction(this.mySequ);
             this.muyuRun.y = 0;
+            this.muyuRun.opacity = 255;
             this.muyuRun.setScale(0.6);
         }
         this.muyuRun.runAction(this.mySequ);
@@ -377,6 +379,7 @@ cc.Class({
         this.isRuning = false;
         this.muyuRun.y = 0;
         this.muyuRun.setScale(0.6);
+        this.muyuRun.opacity = 255;
     }
 
     // update (dt) {},
