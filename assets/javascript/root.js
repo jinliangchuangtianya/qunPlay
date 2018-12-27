@@ -34,6 +34,11 @@ cc.Class({
                 .then(result=>{
                     if(result.data.code == 200){
                         wx.setStorageSync('sessionId', result.data.data.session);
+                        let openId = wx.getStorageSync('openId');
+                        if(!openId){
+                            wx.setStorageSync('openId', result.data.data.openid);
+                        }
+                        
                         if(!!opt.query.sceneto){
                             common.opt = opt;
                                 cc.director.loadScene(opt.query.sceneto);

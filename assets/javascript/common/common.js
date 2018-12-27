@@ -6,4 +6,6 @@
 module.exports = {
     opt : {},   //木鱼携带的参数
     isIn:true,
+    diceRommInfo:null, //骰子房间信息
+    isDiceFight:false  //模式
 };

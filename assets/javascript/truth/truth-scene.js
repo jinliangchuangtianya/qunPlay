@@ -64,7 +64,7 @@ cc.Class({
           })
     },
     init(){
-        //随记排序方法
+        //随机排序方法
         Array.prototype.shuffle = function () {
             let m = this.length, i;
             while (m) {

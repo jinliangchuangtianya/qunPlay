@@ -51,7 +51,15 @@ cc.Class({
     },
     onLoad () {
         this.more.on("touchstart", ()=>{
-            console.warn("跳转到盒子")
+            wx.navigateToMiniProgram({
+                appId:"wx091037d85230fd27",
+                success(res) {
+                  console.warn("打开成功")
+                },
+                fail(err){
+                  console.warn("打开失败")
+                }
+              })
         })
         this.Truth.on("touchstart", ()=>{
             cc.director.loadScene("truth");
@@ -63,10 +71,19 @@ cc.Class({
             cc.director.loadScene("woodfish");
         })
         this.dice.on("touchstart", ()=>{
-            cc.director.loadScene("dice");
+            cc.director.loadScene("dice-con");
         })
         this.finger.on("touchstart", ()=>{
-            cc.director.loadScene("finger");
+            wx.showModal({
+                title:"提示",
+                content: '正在开发中...敬请期待！',
+                showCancel:false,
+                success(res){
+                   
+                   
+                }
+            })
+            //cc.director.loadScene("finger-scene1");
         })
         wx.showShareMenu({
             withShareTicket: true

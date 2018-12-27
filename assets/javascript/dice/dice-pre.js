@@ -23,8 +23,6 @@ cc.Class({
         this.node.setRotation(0);
         this.node.getComponent(cc.Sprite).spriteFrame = this.diceImg[frame];
         this.moveDice(target, frame)
- 
-       
     },
     moveDice(target, frame){
         this.node.opacity = 255;

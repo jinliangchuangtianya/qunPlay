@@ -1,0 +1,187 @@
+syntax="proto3";
+package pb;
+
+//心跳连接的状态， 客户端起个计时器，如果没有回复则掉线
+message Ping {
+	bool pong = 1;
+}
+
+//登陆
+message Login {
+	ReqLogin reqLogin = 1;
+	RspLogin rspLogin = 2;
+}
+message ReqLogin {
+	string openid = 1; //如果有openid，传openid， 没有重新申请code
+	string code = 2;
+    string nickname = 3;  //昵称
+    int32  sex   = 4;     //性别
+    string headhash = 5;  //头像
+}
+message RspLogin {
+	int32 code = 1;
+	string msg = 2;
+	UserInfo user = 3;
+}
+
+//用户信息
+message UserInfo {
+	string openid = 1;
+	string nickname = 2;  //昵称
+	int32  sex   = 3;     //性别
+    string headhash = 4;  //头像
+    bool isonline = 5; //是否在线
+}
+
+//创建房间(队伍)
+message CreateRoom {
+	ReqCreateRoom reqCreateRoom = 1;
+	RspCreateRoom rspCreateRoom = 2;
+}
+message ReqCreateRoom {
+	int32 action = 1; //最少开局人数
+	int32 hidden = 2; //是否可见
+	int32 number = 3; //房间总人数
+	string roomType = 4; //房间类型（游戏场景， 比如天天炸一炸填boom）
+    map <string, string> ext = 5;  //透传到游戏的字段，游戏特有的属性 例如 色子数
+}
+message RspCreateRoom {
+	int32 code = 1;
+	string msg = 2;
+	RoomInfo roominfo = 3;
+}
+
+//加入房间（roomid为空(指定roomtype)，随机匹配）
+message JoinRoom {
+	ReqJoinRoom reqJoinRoom = 1;
+	RspJoinRoom rspJoinRoom = 2;
+}
+message ReqJoinRoom {
+	int32 roomid = 1;
+    string roomtype = 2;
+}
+message RspJoinRoom {
+	int32 code = 1;
+	string msg = 2;
+	RoomInfo roominfo = 3;
+}
+
+//获取所有非隐藏房间信息 ，如果有roomid，获取该房间信息
+message GetRooms {
+	ReqGetRoom reqGetRoom = 1;
+	RspGetRoom rspGetRoom = 2;
+}
+message ReqGetRoom {
+	int32 roomid = 1;
+}
+message RspGetRoom {
+	int32 code = 1;
+	string msg = 2;
+	repeated RoomInfo roominfo = 3;
+}
+
+//房间信息
+message RoomInfo {
+    int32 roomId = 1;
+    map <string, UserInfo> userinfo = 2; //用户id，用户信息
+	string master = 3;  //房主
+	map <string, int32> userStatus = 4;  //[用户id,状态:(0-待确认，1-已确认)]
+	int64 createTime = 5;    //创建时间 待开超过1小时关闭房间 毫秒
+	string roomType = 6;       //房间类型(跳到不同游戏或地图[boom])
+	int32 number = 7;         //房间最大人数
+	int32 action = 8;         //最少开局人数（满足并且所有用户已确定）
+    int32 hidden = 9;        //是否运行随机匹配
+    int32 roomStatus = 10;    //房间状态 0待匹配 1游戏中
+    map <string, string> ext = 11;  //透传到游戏的字段，游戏特有的属性 例如 色子数
+}
+
+//退出房间，房主转让， 如果全部退出则解散房间
+message OutRooms {
+    ReqOutRoom reqOutRoom = 1;
+	RspOutRoom rspOutRoom = 2;
+}
+message ReqOutRoom {
+    string userid = 1; //被T人userid， 自己传空
+}
+message RspOutRoom {
+	int32 code = 1;
+	string msg = 2;
+}
+
+//开始游戏
+message GamePlay {//房间内所有人都点开始后自动进入游戏
+    RspGamePlay rspGamePlay = 1;
+}
+message RspGamePlay {
+    int32 code = 1;
+    string msg = 2;
+}
+
+//结束游戏
+message GameOver {//理论上不需要手动调用，由后端触发，退出游戏也调这个
+    RspGameOver rspGameOver = 1;
+}
+message RspGameOver {
+    int32 code = 1;
+    string msg = 2;
+}
+
+//断线重连
+message Reconnection {//理论上不需要手动调用，登陆时会自动重连并返回游戏信息，客户端需要捕捉下
+    RspReconnection rspRec = 2;
+}
+message RspReconnection {
+    int32 code = 1;
+    string msg = 2;
+    int32 roomId = 3; //如果还在房间返回房间id
+    map <string, UserInfo> userinfo = 4; //房间内用户信息
+    map <string, string> ext = 5; //房间透传信息
+}
+
+//天天炸一炸
+message Boom {
+    map <string, BoomUserXY> userxy = 1; //userid， 用户坐标位置
+    BoomBallXY ballxy = 2; //小球坐标
+}
+
+message BoomUserXY {
+    int32  x  = 1;
+    int32  y  = 2;
+    int32 blood = 3;//剩余血量
+    repeated BoomBuff buff = 4;// 身上的buff
+    int32  angle = 5; //人物角度
+    int64 time = 6; //最后同步时间 超过一秒没同步则视为掉线
+}
+
+message BoomBallXY {
+    int32  x  = 1;
+    int32  y  = 2;
+    string  userid = 3; //谁打出的
+}
+
+message BoomBuff {
+    int32 id = 1; //buffid， 客户端自己约定
+    int64 time = 2;// 剩余时间（毫秒）
+    int32 num = 3;// 剩余次数
+}
+
+message BoomOver{
+
+}
+
+//色子
+message Dice {
+    map<string, DiceUser> usernum = 1;//点数信息
+    repeated string usersort = 2;  //出牌顺序
+}
+
+message DiceUser{
+    repeated int32 number = 1; //我的点数
+    int32 guessNumber = 2;     //猜的数量
+    int32 guessPoints = 3;     //猜的点数
+    bool  open   = 4;     //默认false  开牌  true
+}
+
+message DiceOver{
+    string openid = 1; //开牌人id
+}

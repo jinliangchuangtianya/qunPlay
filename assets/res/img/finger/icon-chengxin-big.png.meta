@@ -1,0 +1,31 @@
+{
+  "ver": "2.2.0",
+  "uuid": "0b2d38d1-0415-4267-9b3a-f201f7be5125",
+  "type": "sprite",
+  "wrapMode": "clamp",
+  "filterMode": "bilinear",
+  "premultiplyAlpha": false,
+  "subMetas": {
+    "icon-chengxin-big": {
+      "ver": "1.0.3",
+      "uuid": "d2b4ffe0-7812-462f-8f4b-26391e17ff29",
+      "rawTextureUuid": "0b2d38d1-0415-4267-9b3a-f201f7be5125",
+      "trimType": "auto",
+      "trimThreshold": 1,
+      "rotated": false,
+      "offsetX": 0,
+      "offsetY": 0,
+      "trimX": 0,
+      "trimY": 0,
+      "width": 106,
+      "height": 113,
+      "rawWidth": 106,
+      "rawHeight": 113,
+      "borderTop": 0,
+      "borderBottom": 0,
+      "borderLeft": 0,
+      "borderRight": 0,
+      "subMetas": {}
+    }
+  }
+}
