@@ -130,6 +130,7 @@ cc.Class({
             this.login();
             return;
         }
+         io.readyState = 0;
          io.close();
          common.isDiceFight = false;
          cc.director.loadScene(scename)

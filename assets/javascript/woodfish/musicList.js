@@ -17,6 +17,7 @@ cc.Class({
         }
     },
     onLoad () {
+       this.musiclistArr = [];
        this.changeMusicIng = false;
        this.back.on("touchstart", this.hideMusic, this);
     },
@@ -29,14 +30,35 @@ cc.Class({
               })
             this.getMusicList()
         }
+        else{
+            this.getscelectID();
+        }
         let finished = cc.callFunc(this.nodeActive, this, false)
-        let show = cc.sequence(cc.moveTo(0.3, 0, 0) , finished)
+        let show = cc.sequence(cc.moveTo(0.3, 0, 0) , finished);
         this.node.runAction(show);
     },
     hideMusic(){
         let finished = cc.callFunc(this.nodeActive, this, true)
         let hide = cc.sequence(cc.moveTo(0.1, 640, 0) , finished)
         this.node.runAction(hide);
+    },
+    //获取选中项
+    getscelectID(){
+        let id;
+        let currentMusic = wx.getStorageSync("currentMusic");
+        if(!!currentMusic){
+            id = JSON.parse(currentMusic).id;
+        }
+        if(this.currentItem.id == id) return;
+        for(let i=0; i< this.musiclistArr.length; i++){
+            if(id == this.musiclistArr[i].id){
+                this.musiclistArr[i].getComponent("music-item").changeMusic(true);
+                break;
+            }
+            
+        }
+
+        
     },
     getMusicList(){
             let path = "/api/getMusicList",gid = wx.getStorageSync('gid'), sessionId = wx.getStorageSync('sessionId'), _this = this;
@@ -59,6 +81,8 @@ cc.Class({
                     for(let i=0; i<list.length; i++){
                         let item = cc.instantiate(this.musicPre);
                         item.parent = this.musicView;
+                        item.id = list[i].id;
+                        this.musiclistArr.push(item);
 
                         if(id == list[i].id){
                             _this.currentItem = item

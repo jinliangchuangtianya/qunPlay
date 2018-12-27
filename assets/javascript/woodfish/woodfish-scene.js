@@ -41,11 +41,39 @@ cc.Class({
             default:null
         },
         mestitle:cc.Label,
-        rankList:cc.Node
+        rankList:cc.Node,
+        changeGu:cc.Node,
+        changeMy:cc.Node,
+        changeMucisBtn:cc.Node,
+        gu:cc.Node,
+        gumian:cc.Node,
+        guAudio:cc.AudioClip
     },
 
     onLoad () {
-       
+        this.gumusic = 0;
+        if(common.woodfishType == 'muyu'){
+            this.changeGu.active =  true;
+            this.gu.setScale(0);
+            this.gu.active = false;
+            this.muyu.active = this.muyuRun.active = true;
+            this.muyu.setScale(0.6);
+            this.muyuRun.setScale(0.6);
+        }
+        else if(common.woodfishType == 'gu'){
+            this.changeMy.active = true;
+            this.muyu.setScale(0);
+            this.muyuRun.setScale(0);
+            this.muyu.active = this.muyuRun.active = false;
+            
+            this.gu.active = true;
+            this.gu.setScale(1.5);
+        }
+
+        this.gumian.on("touchstart", this.gamePlay, this);
+        this.changeGu.on('touchstart', this.changeType.bind(this, 'muyu'));
+        this.changeMy.on('touchstart', this.changeType.bind(this, 'gu'))
+
         this.isMusicPlay = this.isInit = this.isStartTime =  this.isRuning = false;
         this.start_time = this.startScore = 0;
         let targetY = cc.winSize.height/2 - 150;
@@ -58,6 +86,13 @@ cc.Class({
                 cc.fadeTo(0.2,0)
             ),
             myMvoeCallFun
+        );
+
+        let guMvoeCallFun = cc.callFunc(this.guMvoeFinished , this);
+        this.guSequ = cc.sequence(
+            cc.scaleTo(0.1, 1.02, 1.02).easing(cc.easeBounceInOut(4.0)),
+            cc.scaleTo(0.15, 1, 1).easing(cc.easeBounceInOut(4.0)),
+            guMvoeCallFun
         );
 
         wx.showLoading({
@@ -260,7 +295,66 @@ cc.Class({
               }
         })
     },
-    gamePlay(){
+    //切换道具
+    changeType(type, ev){
+        let myMvoeCallFun = cc.callFunc(this.changeAction, this, type);
+        let muyuhide = cc.sequence(
+            cc.scaleTo(0.1, 0, 0),
+            myMvoeCallFun
+        );
+        if(type == 'muyu'){
+            this.changeGu.active = false;
+            this.changeMy.active = true;
+            this.muyu.active = this.muyuRun.active = true;
+            
+             //保存鼓的数据
+             wx.setStorageSync("currentMusic", JSON.stringify({"id":"11","link":"https://jx-game.oss-cn-beijing.aliyuncs.com/qunPlay/audio/gu.mp3"}));
+             this.myaudio.src = "https://jx-game.oss-cn-beijing.aliyuncs.com/qunPlay/audio/gu.mp3"
+
+            this.muyu.runAction(muyuhide);
+            this.muyuRun.setScale(0)
+        }
+        else if(type == 'gu'){
+            this.changeGu.active = true;
+            this.changeMy.active = false;
+            this.gu.active = true;
+
+             //保木鱼的数据
+             wx.setStorageSync("currentMusic", JSON.stringify({"id":"1","link":"http://cloudimg2.jixiang.cn/b89963688bd7d55f48e1a25a455acefb.mp3"}));
+             this.myaudio.src = "http://cloudimg2.jixiang.cn/b89963688bd7d55f48e1a25a455acefb.mp3"
+
+            this.gu.runAction(muyuhide);      
+        }
+       
+    },
+    //切换动画
+    changeAction(ev,type){
+        console.log(type, 'tye');
+        if(type == 'muyu'){
+            this.muyu.active = this.muyuRun.active = false;
+            this.gu.active = true;
+            common.woodfishType = 'gu';
+            this.gu.runAction(cc.scaleTo(0.2, 1.5, 1.5));
+        }
+        else if(type == 'gu'){
+            this.gu.active = false;
+            this.muyu.active = this.muyuRun.active = true;
+            this.muyuRun.opacity = 0;
+            common.woodfishType = 'muyu';
+
+            let myMvoeCallFun = cc.callFunc(function(){
+                this.muyuRun.setScale(0.6);
+                this.muyuRun.opacity = 255;
+            },this);
+            let muyushow = cc.sequence(
+                cc.scaleTo(0.2, 0.6, 0.6),
+                myMvoeCallFun
+            );
+            this.muyu.runAction(muyushow); 
+           
+        }
+    },
+    gamePlay(ev){
         if( this.rankingView.isRank) return;
         this.score.string = (parseInt(this.score.string) + 1) + "";
         this.selfScore += 1;
@@ -278,20 +372,41 @@ cc.Class({
                 }
             },5000)
         }
-        let currentMusic = JSON.parse(wx.getStorageSync("currentMusic"))
-        if(currentMusic.id == 1){
+        let currentMusic = JSON.parse(wx.getStorageSync("currentMusic"));
+ 
+        if(currentMusic.id == 1 || currentMusic.id == 11){
             this.myaudio.stop()
         }
-        this.myaudio.play();
-        
-        if( this.isRuning ){
-            this.muyuRun.stopAction(this.mySequ);
-            this.muyuRun.y = 0;
-            this.muyuRun.opacity = 255;
-            this.muyuRun.setScale(0.6);
+
+        if(common.woodfishType == 'gu'){
+            cc.audioEngine.stop( this.gumusic );
+            this.gumusic = cc.audioEngine.playEffect(this.guAudio, false);
         }
-        this.muyuRun.runAction(this.mySequ);
+        else{
+            this.myaudio.play();
+        }
+        
+
+        if(this.muyu.active){
+            if( this.isRuning ){
+                this.muyuRun.stopAction(this.mySequ);
+                this.muyuRun.y = 0;
+                this.muyuRun.opacity = 255;
+                this.muyuRun.setScale(0.6);
+            }
+            this.muyuRun.runAction(this.mySequ);
+        }
+        else if(this.gu.active){
+            if( this.isRuning ){
+                this.gumian.stopAction(this.guSequ);
+                this.gumian.setScale(1);
+            }
+            console.warn(123456)
+            this.gumian.runAction(this.guSequ);
+        }
+        
         this.isRuning = true;
+
         clearTimeout(this.timer);
         this.timer = setTimeout(()=>{
             this.isStartTime = false;
@@ -364,11 +479,15 @@ cc.Class({
     },
     //切换音乐
     changeMusic(){
+        let link = JSON.parse(wx.getStorageSync("currentMusic")).link;
+        if(this.myaudio.src == link){
+            return;
+        }
         wx.showLoading({
             title:"加载中",
             mask:true
         })
-        let link = JSON.parse(wx.getStorageSync("currentMusic")).link;
+        
         this.myaudio.src = link;
         this.myaudio.onCanplay(function () {
             wx.hideLoading();
@@ -380,6 +499,11 @@ cc.Class({
         this.muyuRun.y = 0;
         this.muyuRun.setScale(0.6);
         this.muyuRun.opacity = 255;
+    },
+    //鼓运动结束
+    guMvoeFinished(){
+        this.isRuning = false;
+        this.gumian.setScale(1);
     }
 
     // update (dt) {},
