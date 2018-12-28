@@ -41,12 +41,6 @@ cc.Class({
                 musiclist.getComponent("musicList").changeMusicIng = false;
             }
         }
-        if(this.node.id == 11){
-            common.woodfishType = 'gu'; 
-        }
-        else{
-            common.woodfishType = 'muyu'; 
-        }
     },
     changeScelect(){
         let musiclist = cc.find("Canvas/musicList");
@@ -56,7 +50,6 @@ cc.Class({
         musiclist.getComponent("musicList").hideMusic();
     },
     removeActive(){
-        console.warn(99999)
         this.sort.node.color = this.musicName.node.color = new cc.Color(255, 255, 255);
     }
     // update (dt) {},

@@ -1,4 +1,3 @@
-
 let XMLHttpRequest = require('../utils/jxRequest');
 let post = XMLHttpRequest.post;
 
@@ -14,7 +13,8 @@ cc.Class({
         runBtnframe:{
             default:[],
             type:cc.SpriteFrame
-        }
+        },
+        exitBtn:cc.Node
         
     },
 
@@ -36,6 +36,11 @@ cc.Class({
                 query:query
             }
         })
+
+        this.exitBtn.on('touchstart', function(){
+            cc.director.loadScene('index');
+        },this)
+
         this.words = [];
         this.risk = [];
         this.wordsPreArr = [];
@@ -44,7 +49,6 @@ cc.Class({
         this.runBtn.on("touchstart", this.randomArr, this);
         let path = '/api/getbigrisklist',sessionId = wx.getStorageSync('sessionId');
         post(path, {}, sessionId ).then(result => {
-            console.log(result.data.data)
             if (result.data.code == 200) {
               let data = result.data.data;
               this.words = data.zxh;
@@ -73,35 +77,42 @@ cc.Class({
             }
             return this;
         }
-
         for(let i=0; i<this.words.length; i++){
+ 
             let item = cc.instantiate(this.textItem);
             this.wordsPreArr.push(item);
             item.parent = this.wordsView;
+            
             item.getComponent("text-item").init(this.words[i].content);
+            item.y = i * (-item.height);
         }
+  
+        this.wordsView.height = this.wordsPreArr[0].height * this.words.length;
         for(let i=0; i<this.risk.length; i++){
             let item = cc.instantiate(this.textItem);
             this.riskPreArr.push(item);
             item.parent = this.riskView;
+           
             item.getComponent("text-item").init(this.risk[i].content);
+            item.y = i * (-item.height);
         }
+        this.riskView.height = this.riskPreArr[0].height * this.risk.length;
         wx.hideLoading();  
     },
     randomArr() {
         if( this.isPlaying ) return;
         this.isPlaying = true;
         this.runBtn.getComponent(cc.Sprite).spriteFrame = this.runBtnframe[1];
-        this.words = this.words.shuffle();
-        this.risk =  this.risk.shuffle();
+        this.wordsPreArr = this.wordsPreArr.shuffle();
+        this.riskPreArr =  this.riskPreArr.shuffle();
         this.wordsView.y =  this.riskView.y = 0;
 
         for(let i=0; i<this.wordsPreArr.length; i++){
-           
-           this.wordsPreArr[i].getComponent("text-item").init( this.words[i].content)
+           this.wordsPreArr[i].y = i*(-this.wordsPreArr[0].height);
         }
+        
         for(let i=0; i<this.riskPreArr.length; i++){
-            this.riskPreArr[i].getComponent("text-item").init( this.risk[i].content)
+            this.riskPreArr[i].y = i*(-this.riskPreArr[0].height);;
         }
         this.playIng()
     },
@@ -122,5 +133,8 @@ cc.Class({
         this.wordsView.runAction(waction);
         this.riskView.runAction(raction);
 
+    },
+    onDestroy:function(){
+        cc.audioEngine.stopAll();
     }
 });

@@ -41,8 +41,8 @@
     },
     "_scale": {
       "__type__": "cc.Vec3",
-      "x": 0.48070437003914257,
-      "y": 0.48070437003914257,
+      "x": 0.5677083333333333,
+      "y": 0.5677083333333333,
       "z": 1
     },
     "_quat": {
@@ -1124,7 +1124,7 @@
   {
     "__type__": "cc.Node",
     "_name": "rankingView",
-    "_objFlags": 512,
+    "_objFlags": 0,
     "_parent": {
       "__id__": 2
     },
@@ -5887,6 +5887,9 @@
     },
     "guAudio": {
       "__uuid__": "12e8c872-cce8-41c8-aa7d-3b1d9ff35c6a"
+    },
+    "mymClip": {
+      "__uuid__": "4f7fd109-6413-46c8-aaa6-9757eb903c6f"
     },
     "_id": "8aANEgnkVFQppgd0vsTmmE"
   },

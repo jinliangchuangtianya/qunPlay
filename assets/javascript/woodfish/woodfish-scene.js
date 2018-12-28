@@ -47,11 +47,12 @@ cc.Class({
         changeMucisBtn:cc.Node,
         gu:cc.Node,
         gumian:cc.Node,
-        guAudio:cc.AudioClip
+        guAudio:cc.AudioClip,
+        mymClip:cc.AudioClip
     },
 
     onLoad () {
-        this.gumusic = 0;
+       
         if(common.woodfishType == 'muyu'){
             this.changeGu.active =  true;
             this.gu.setScale(0);
@@ -374,13 +375,17 @@ cc.Class({
         }
         let currentMusic = JSON.parse(wx.getStorageSync("currentMusic"));
  
-        if(currentMusic.id == 1 || currentMusic.id == 11){
-            this.myaudio.stop()
+       
+           
+        if(currentMusic.id == 11){
+            this.myaudio.stop();
+            cc.audioEngine.stop(this.guAudio);
+            cc.audioEngine.playEffect(this.guAudio, false);
         }
-
-        if(common.woodfishType == 'gu'){
-            cc.audioEngine.stop( this.gumusic );
-            this.gumusic = cc.audioEngine.playEffect(this.guAudio, false);
+        else if(currentMusic.id == 1){
+            this.myaudio.stop();
+            cc.audioEngine.stop(this.mymClip);
+            cc.audioEngine.playEffect(this.mymClip, false);
         }
         else{
             this.myaudio.play();
@@ -401,7 +406,6 @@ cc.Class({
                 this.gumian.stopAction(this.guSequ);
                 this.gumian.setScale(1);
             }
-            console.warn(123456)
             this.gumian.runAction(this.guSequ);
         }
         
@@ -480,7 +484,8 @@ cc.Class({
     //切换音乐
     changeMusic(){
         let link = JSON.parse(wx.getStorageSync("currentMusic")).link;
-        if(this.myaudio.src == link){
+        let id = JSON.parse(wx.getStorageSync("currentMusic")).id;
+        if(this.myaudio.src == link || id == 1 || id == 11){
             return;
         }
         wx.showLoading({
@@ -504,6 +509,13 @@ cc.Class({
     guMvoeFinished(){
         this.isRuning = false;
         this.gumian.setScale(1);
+    },
+    onDestroy:function(){
+        clearTimeout(this.setTimer);
+        clearTimeout( this.sendOverTimer );
+        clearTimeout(this.timer);
+        cc.audioEngine.stopAll();
+        this.myaudio.stop();
     }
 
     // update (dt) {},

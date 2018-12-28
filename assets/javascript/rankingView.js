@@ -97,7 +97,8 @@ cc.Class({
     update () {
         //this._updateSubDomainCanvas();
     },
-    onDisable(){
+    onDestroy(){
+        clearTimeout(  this.getTimer );
         clearTimeout( this.timer );
         this.node.stopAllActions();
         this.node.y = this.iy;

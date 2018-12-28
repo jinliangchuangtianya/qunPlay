@@ -12,7 +12,8 @@ cc.Class({
         yqBnt:cc.Node,
         tcBtn:cc.Node,
         startBntText:cc.Sprite,
-        waitIngText:cc.SpriteFrame
+        waitIngText:cc.SpriteFrame,
+        startFame:cc.SpriteFrame
     },
 
 
@@ -126,6 +127,7 @@ cc.Class({
     //显示房间成员
     drowPlayers(){
         let roomInfo = common.diceRommInfo;
+        console.warn(roomInfo, 'roomInfo')
         let openId = wx.getStorageSync('openId');
         if(roomInfo.master == openId){
             console.warn('你是房主');
@@ -155,6 +157,7 @@ cc.Class({
             return;
         }
         if(correntPlays < nowPlays.length){
+            console.warn(roomInfo, 'nowPlaysnowPlaysnowPlays');
             //有人加入
             for(let attr in roomInfo.userinfo){
                 let nickname = roomInfo.userinfo[attr].nickname;
@@ -170,6 +173,15 @@ cc.Class({
                     if(roomInfo.master == openId){
                         item.getComponent("room-item").fz.active = true;
                     }
+                }
+            }
+            for(let attr in roomInfo.userStatus){
+                if(roomInfo.userStatus[attr] == 1){
+                    let index = this.currentOpens.findIndex((val)=>{
+                        return val == attr
+                    })
+                    this.players[index].getComponent('room-item').zb.active = true;
+                    this.players[index].getComponent('room-item').wzb.active = false;
                 }
             }
             if( this.players.length > 1){
@@ -192,10 +204,28 @@ cc.Class({
                     }
                 }   
             }
+            for(let attr in roomInfo.userStatus){
+                let index = this.currentOpens.findIndex((val)=>{
+                    return val == attr
+                })
+                if(roomInfo.userStatus[attr] == 0){
+                    this.players[index].getComponent('room-item').zb.active = false;
+                    this.players[index].getComponent('room-item').wzb.active = true;
+                    if(attr == openId){
+                        this.startBntText.spriteFrame = this.startFame;
+                        this.isStart = false
+                    }
+                }
+                else{
+                    this.players[index].getComponent('room-item').zb.active = true;
+                    this.players[index].getComponent('room-item').wzb.active = false;
+                }
+            }
             if( this.players.length <= 1){
                 this.startBnt.active = false;
             }
         }
+
     },
     //点击准备
     onStartPlay(){

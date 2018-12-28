@@ -24,7 +24,8 @@ cc.Class({
         overSprite:cc.SpriteFrame,
         yhlSprite:cc.SpriteFrame,
         wait:cc.Node,
-        exitBtn:cc.Node
+        exitBtn:cc.Node,
+        goIndexBtn:cc.Node
     },
 
     // LIFE-CYCLE CALLBACKS:
@@ -51,7 +52,7 @@ cc.Class({
         
             this.players = [];   //初始化当前游戏玩家的数组集合 type => prefab
             this.timer = null;
-            this.border.active = false;
+            this.border.active = this.goIndexBtn.active = false;
             this.okBnt.active = true;
             this.isReady = false;  //选好了
             this.alignPlay = false; //重新开始
@@ -68,10 +69,14 @@ cc.Class({
             onfire.on("onclose",this.onclose.bind(this));
         }
         else{
-            this.border.active = true;
+            this.border.active = this.goIndexBtn.active = true;
             this.okBnt.active = false;
             this.diceCount = 6;
             this.changeCount = 6;
+
+            this.goIndexBtn.on('touchstart', function(){
+                cc.director.loadScene('index');
+            },this)
         }
      
         this.diceArr = [];
@@ -476,6 +481,7 @@ cc.Class({
     },
     //有成员退出
     rspJoinRoom(data){
+        let _this = this;
         data =  pb.JoinRoom.decode(data.buf);
         if(data.rspJoinRoom.code == 200){
            
@@ -484,18 +490,13 @@ cc.Class({
             this.playersCount = Object.keys(common.diceRommInfo.userinfo).length;
             if( this.playersCount <= 1){
                 console.warn("create-room, 都退出了");
-
-                io.readyState = 0;
-                io.close();
-                common.opt = {};
-                common.diceRommInfo = null;
-
+               
                 wx.showModal({
                     title:"提示",
                     content: '好友成员都退出了,房间解散',
                     showCancel:false,
                     success(res){
-                       cc.director.loadScene('index');
+                        _this.OutRooms();
                     }
                 })
             }
@@ -543,6 +544,7 @@ cc.Class({
      //监听
      rspDice(data){
         if(this.alignPlay == true ){
+            this.playIng();
             this.alignPlay = false; 
             this.wait.active = this.exitBtn.active = false;
             this.players = [];

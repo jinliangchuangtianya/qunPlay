@@ -26,7 +26,7 @@ cc.Class({
         if(!!common.opt.query && !!common.opt.query.roomid){
             this.isJoin = true;
             this.btns.active = false;
-            this.joinBtn.active = true;
+            this.joinBtn.active = this.joinBtn.active = true;
         }
         else{
             this.btns.active = this.dices.active = true;
@@ -132,6 +132,7 @@ cc.Class({
         }
          io.readyState = 0;
          io.close();
+         common.opt = {};
          common.isDiceFight = false;
          cc.director.loadScene(scename)
     }, 
@@ -385,7 +386,7 @@ cc.Class({
             btnNode = this.joinBtn;
         }
         else{
-            btnNode = this.loginBnt;;
+            btnNode = this.loginBnt;
         }
        
         let btnSize = cc.size(btnNode.width,btnNode.height);
