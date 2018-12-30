@@ -21,13 +21,13 @@ cc.Class({
     init (opt, index) {
         this.gid = opt.gid;
         this.node.on("touchstart", this.changeTeam, this)
-        if((index+1) == 1 || (index+1) == 2 || (index+1) == 3){
+        if(index == 1 || index == 2 || index == 3){
             this.rankImg.node.active = true;
-            this.rankImg.spriteFrame = this.rankImgframe[index]
+            this.rankImg.spriteFrame = this.rankImgframe[index-1]
         }
         else{
-            this.rankLabel.node = true;
-            this.rankLabel.string = index+1
+            this.rankLabel.node.active = true;
+            this.rankLabel.string = index;
         }
         this.zdname.string = (opt.group_name == ""?"未命名":opt.group_name);
         this.count.string = opt.group_hit_count;

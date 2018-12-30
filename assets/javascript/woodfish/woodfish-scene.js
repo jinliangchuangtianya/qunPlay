@@ -48,11 +48,25 @@ cc.Class({
         gu:cc.Node,
         gumian:cc.Node,
         guAudio:cc.AudioClip,
-        mymClip:cc.AudioClip
+        mymClip:cc.AudioClip,
+        exitBox:cc.EditBox,
+        zdBtn:cc.Node,
+        qxBtn:cc.Node,
+        maskNode:cc.Node,
+        leftGroup:cc.Node
     },
 
     onLoad () {
-       
+        this.zdName = '';
+        this.isShar = false;
+        wx.onShow(()=>{
+            if(this.isShar){
+                this.isShar = false;
+                let gid = wx.getStorageSync('gid');
+                this.init(gid);
+            }
+        })
+
         if(common.woodfishType == 'muyu'){
             this.changeGu.active =  true;
             this.gu.setScale(0);
@@ -108,6 +122,10 @@ cc.Class({
             this.myaudio.src = "http://cloudimg2.jixiang.cn/b89963688bd7d55f48e1a25a455acefb.mp3"
         }
         else{
+            if(common.woodfishType == 'muyu' && JSON.parse(currentMusic).id == 11){
+                wx.setStorageSync("currentMusic", JSON.stringify({"id":"1","link":"http://cloudimg2.jixiang.cn/b89963688bd7d55f48e1a25a455acefb.mp3"}));
+                this.myaudio.src = "http://cloudimg2.jixiang.cn/b89963688bd7d55f48e1a25a455acefb.mp3"
+            }
             this.myaudio.src = JSON.parse(currentMusic).link;
         }
         let _this = this;
@@ -134,13 +152,16 @@ cc.Class({
         wx.onShareAppMessage((res)=>{
             let type = res.from;
             let gid = wx.getStorageSync('gid'),query = "share=true&sceneto=woodfish";
-            if(!!gid){
-                query += "&gid="+gid;
-            }
+            // if(!!gid){
+            //     query += "&gid="+gid+"isnumber=false";
+            // }
             return{
                 title:"快来帮我敲两下！",
                 imageUrl:"https://jx-game.oss-cn-beijing.aliyuncs.com/qunPlay/img/muyu_share.png",
-                query:query
+                query:query,
+                success: function (res) {
+                    
+                }
             }
         })
 
@@ -156,83 +177,71 @@ cc.Class({
         this.path_gid = null;
         if(!!opt.query){
            this.path_gid = (!!opt.query.gid ? opt.query.gid : null);
-        }
-        if(!!opt.shareTicket){
-            this.getShareTicket(opt.shareTicket)
+           if( !!this.path_gid ){
+                let mode = '';
+                if(opt.query.isnumber == 'true'){
+                    mode = 'join';
+                }
+                else if(opt.query.isnumber == 'false'){
+                    mode = 'assist';
+                }
+                this.joinGroup(this.path_gid, mode);
+           }
+           else{
+           
+             this.getMygroups();
+
+           }
         }
         else{
-            this.isallowjoin(  this.path_gid, null )
+            this.getMygroups();
         }
+        
     },
-    //获取shareTicket
-    getShareTicket(shareTicket){
-        wx.getShareInfo({
-            shareTicket:shareTicket,
-            success:result=>{
-                let data = {
-                    encryptedData:result.encryptedData,
-                    iv : result.iv
-                }
-                this.getGroup(data);
-            }
-        })
-    },
-    //获取战队
-    getGroup(data){
-        let path = "/api/getgroup", sessionId = wx.getStorageSync('sessionId');
-        post(path, data, sessionId).then(result => {
-            if (result.data.code == 200) {
-                let share_gid = result.data.data.id;          
-                this.isallowjoin( this.path_gid, share_gid );
-            }
-            else{
-                this.isallowjoin( this.path_gid, null );
-            }
-          })
-    },
-    isallowjoin(gid, share_gid){
-        let path = "/api/isallowjoin", sessionId = wx.getStorageSync("sessionId");
+    joinGroup(gid,mode){
+        let path = "/api/join-group", sessionId = wx.getStorageSync("sessionId");
         let data = {
             gid,
-            share_gid
+            mode
         }
+        console.warn()
         post(path, data, sessionId).then(res=>{
             if (res.data.code == 200) {
-                this.init(res.data.data.gid);
-            }
-            else if (res.data.code == 403){
-                let gid = wx.getStorageSync("gid");
-                if(!!gid){
-                    this.init(gid);
-                }
-                else{
-                    this.getMygroups();
-                }
+                this.init(gid);
             }
         })
     },
     getMygroups(){
-        let path = '/api/mygroups',sessionId = wx.getStorageSync("sessionId");
-        post(path, {}, sessionId).then(res => {
-            let my_groups_list = res.data.data.my_groups_list;
-            if (my_groups_list.length) {
-                //跳转到选择战队列表
-                console.warn("跳转到战队列表")
-                common.opt = my_groups_list;
-                common.opt.isJump = true;
-                cc.director.loadScene("group-list");
-            }
-            else {
-                //白玩
-                this.init();
-            }
-        })
+        let gid = wx.getStorageSync('gid');
+        if(!!gid){
+            this.init(gid);
+        }
+        else{
+            let path = '/api/mygroups',sessionId = wx.getStorageSync("sessionId");
+            post(path, {}, sessionId).then(res => {
+                let my_groups_list = res.data.data.my_groups_list;
+                if (my_groups_list.length) {
+                    //跳转到选择战队列表
+                    console.warn("跳转到战队列表")
+                    common.opt = my_groups_list;
+                    common.opt.isJump = true;
+                    cc.director.loadScene("group-list");
+                }
+                else {
+                    //白玩
+                    this.init();
+                }
+            })
+        }
     },
     /**
      * 初始化
      * @param {*} gid 战队ID
      */
     init(gid){
+
+        this.zdBtn.on("touchstart", this.createSucc, this);
+        this.qxBtn.on("touchstart", this.removeMask, this);
         common.opt = {};
         if(!!gid){
             this.createBtn.active = false;
@@ -242,7 +251,7 @@ cc.Class({
         }
         else{
             this.createBtn.active = true;
-            this.createBtn.on("touchstart", this.createZd, this);
+            this.createBtn.on("touchstart", this.jzdHandle, this);
             this.mes.active = this.item.active = false;
             this.isInit = true;
             if(this.isMusicPlay){
@@ -280,6 +289,7 @@ cc.Class({
                  }
               }
               else {
+                let _this = this;
                 this.isInit = true;  
                 if(this.isMusicPlay){
                     wx.hideLoading();
@@ -288,9 +298,9 @@ cc.Class({
                     showCancel: false,
                     content: "战队已不存在",
                     success(){
-                        this.createBtn.active = true;
-                        this.createBtn.on("touchstart", this.createZd, this);
-                        this.mes.active = this.item.active = false;
+                        _this.createBtn.active = true;
+                        _this.createBtn.on("touchstart", _this.jzdHandle, _this);
+                        _this.mes.active = _this.item.active = false;
                     }
                   })
               }
@@ -414,7 +424,10 @@ cc.Class({
         clearTimeout(this.timer);
         this.timer = setTimeout(()=>{
             this.isStartTime = false;
+
             this.myaudio.stop();
+            this.myaudio.seek(0)
+
             let gid = wx.getStorageSync("gid");
             if (!!gid) {
                 let path = "/api/update", sessionId = wx.getStorageSync('sessionId');
@@ -449,37 +462,74 @@ cc.Class({
             this.rankList.getComponent("rankList").showView();
         }
         
-    }, 
+    },
+    getZdName(text, editbox, customEventData){
+        this.zdName = text;
+    },
+    createSucc(){
+       
+        if(this.zdName.trim() == ''){
+            wx.showToast({
+                title:"名称不能为空",
+                mask:true,
+                icon:'none'
+            })
+            return;
+        }
+        this.createZd();
+    },
     //创建战队
     createZd(){
+
         let _this = this;
-        wx.shareAppMessage({
-            title:"快来帮我敲两下！",
-            imageUrl:"https://jx-game.oss-cn-beijing.aliyuncs.com/qunPlay/img/muyu_share.png",
-            query:"share=true&sceneto=woodfish",
-            success(res){
-                if (res.shareTickets && res.shareTickets[0]) {
-                    let shareTicket = res.shareTickets[0];
-                    wx.getShareInfo({
-                        shareTicket:shareTicket,
-                        success:result=>{
-                            let data = {
-                                encryptedData:result.encryptedData,
-                                iv : result.iv,
-                                c:"create"
-                            }
-                            let path = "/api/getgroup", sessionId = wx.getStorageSync('sessionId');
-                            post(path, data, sessionId).then(arg => {
-                                if (arg.data.code == 200) {
-                                //创建成功后重置页面
-                                _this.init(arg.data.data.id)
-                                }
-                            })
-                        }
-                    })
-                }
+
+        let path = '/api/create-group',sessionId = wx.getStorageSync('sessionId');
+
+        post(path, {name:this.zdName}, sessionId).then(arg => {
+            if (arg.data.code == 200) {
+                this.removeMask();
+                let gid = arg.data.data.id;
+                wx.setStorageSync("gid", gid);
+                this.isShar = true;
+                wx.shareAppMessage({
+                    title:"快来帮我敲两下！",
+                    imageUrl:"https://jx-game.oss-cn-beijing.aliyuncs.com/qunPlay/img/muyu_share.png",
+                    query:"share=true&sceneto=woodfish&gid="+gid+"&isnumber=true",
+                    success(res){
+                        
+                    }
+                })
             }
         })
+        
+    }, 
+    jzdHandle () {
+        if(common.woodfishType == 'muyu'){
+            this.gu.active = false;
+        }
+        else{
+            this.muyu.active = this.muyuRun.active = false;
+        }
+        this.leftGroup.active = this.changeMucisBtn.active =  false;
+        this.maskNode.active = true;
+        let spawn = cc.spawn(cc.fadeTo(0.3, 255), cc.scaleTo(0.3, 1, 1));
+        this.maskNode.runAction(spawn);
+        this.exitBox.fontColor = new cc.Color(51,51,51)
+        console.warn( this.exitBox)
+    },
+    removeMask(){
+        if(common.woodfishType == 'muyu'){
+            this.gu.active = true;
+        }
+        else{
+            this.muyu.active = this.muyuRun.active = true;
+        }
+        this.leftGroup.active = this.changeMucisBtn.active =  true;
+        this.maskNode.setScale(0);
+        this.maskNode.opacity = 0;
+        this.maskNode.active = false;
+        this.zdName = "";
+        this.exitBox.string = "";
     },
     //切换音乐
     changeMusic(){

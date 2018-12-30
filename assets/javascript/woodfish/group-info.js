@@ -16,13 +16,28 @@ cc.Class({
         rank:cc.Label,
         conent:cc.Node,
         changBtn:cc.Node,
-        back:cc.Node
+        back:cc.Node,
+        zdBtn:cc.Node,
+        jzdBtn:cc.Node,
+        zzBtn:cc.Node,
+        maskNode:cc.Node,
+        b2:cc.Node,
+        qxBtn:cc.Node,
+        exitBox:cc.EditBox
     },
 
     // LIFE-CYCLE CALLBACKS:
 
     onLoad () {
+        this.isShar = false;
+        wx.onShow(()=>{
+            if(this.isShar){
+                this.isShar = false;
+                cc.director.loadScene("woodfish");
+            }
+        })
 
+        this.zdName = "";
         wx.showLoading({
             title: '加载中',
             mask: true
@@ -35,7 +50,7 @@ cc.Class({
             let type = res.from;
             let gid = wx.getStorageSync('gid'),query = "share=true&sceneto=woodfish";
             if(!!gid){
-                query += "&gid="+gid;
+                query += "&gid="+gid+"&isnumber=false";
             }
             return{
                 title:"快来帮我敲两下！",
@@ -51,6 +66,9 @@ cc.Class({
         this.changBtn.on("touchstart", function(){
             cc.director.loadScene("group-list")
         })
+
+        this.zdBtn.on('touchstart', this.createSucc,this);
+        this.qxBtn.on('touchstart', this.removeMask,this)
 
         console.warn(common.opt.groupInfo, "info修改权限")
 
@@ -88,44 +106,52 @@ cc.Class({
 
         })
     },
+    getZdName(text, editbox, customEventData){
+        this.zdName = text;
+    },
+    createSucc(){
+       
+        if(this.zdName.trim() == ''){
+            wx.showToast({
+                title:"名称不能为空",
+                mask:true,
+                icon:'none'
+            })
+            return;
+        }
+        this.createZd();
+    },
     //创建战队
     createZd(){
+
         let _this = this;
-        wx.shareAppMessage({
-            title:"快来帮我敲两下！",
-            imageUrl:"https://jx-game.oss-cn-beijing.aliyuncs.com/qunPlay/img/muyu_share.png",
-            query:"share=true&sceneto=woodfish",
-            success(res){
-                if (res.shareTickets && res.shareTickets[0]) {
-                    let shareTicket = res.shareTickets[0];
-                    wx.getShareInfo({
-                        shareTicket:shareTicket,
-                        success:result=>{
-                            let data = {
-                                encryptedData:result.encryptedData,
-                                iv : result.iv,
-                                c:"create"
-                            }
-                            let path = "/api/getgroup", sessionId = wx.getStorageSync('sessionId');
-                            post(path, data, sessionId).then(arg => {
-                                console.warn(arg, 77777777777777777777777)
-                                if (arg.data.code == 200) {
-                                //创建成功后重置页面
-                                wx.setStorageSync("gid", arg.data.data.id);
-                                cc.director.loadScene("woodfish");
-                                }
-                            })
-                        }
-                    })
-                }
+
+        let path = '/api/create-group',sessionId = wx.getStorageSync('sessionId');
+
+        post(path, {name:this.zdName}, sessionId).then(arg => {
+            if (arg.data.code == 200) {
+                this.removeMask();
+                let gid = arg.data.data.id;
+                wx.setStorageSync("gid", gid);
+                this.isShar = true;
+                wx.shareAppMessage({
+                    title:"快来帮我敲两下！",
+                    imageUrl:"https://jx-game.oss-cn-beijing.aliyuncs.com/qunPlay/img/muyu_share.png",
+                    query:"share=true&sceneto=woodfish&gid="+gid+"&isnumber=true",
+                    success(res){
+                        
+                    }
+                })
             }
         })
+        
     },
+    
     //请人助战
     zhuzhanFn(){
         let _this = this;
         let gid = wx.getStorageSync("gid");
-        let query = "share=true&sceneto=woodfish";
+        let query = "share=true&sceneto=woodfish&isnumber=fasle";
         if(!!gid){
             query += "&gid=" + gid;
         }
@@ -135,9 +161,19 @@ cc.Class({
             query:query
         })
     },
-    start () {
-
+    jzdHandle () {
+        this.zzBtn.active = this.b2.active = false;
+        this.maskNode.active = true;
+        let spawn = cc.spawn(cc.fadeTo(0.3, 255), cc.scaleTo(0.3, 1, 1));
+        this.maskNode.runAction(spawn);
     },
-
+    removeMask(){
+        this.zzBtn.active = this.b2.active = true;
+        this.maskNode.setScale(0);
+        this.maskNode.opacity = 0;
+        this.maskNode.active = false;
+        this.zdName = "";
+        this.exitBox.string = "";
+    },
     // update (dt) {},
 });

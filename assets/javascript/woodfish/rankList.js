@@ -62,6 +62,7 @@ cc.Class({
         let path = "/api/show",sessionId = wx.getStorageSync('sessionId');
         post(path, {}, sessionId).then(res => {
             wx.hideLoading();
+            console.warn(res, 'resresres')
             if (res.data.code == 200) {  //有战队
             
              let data = res.data.data;

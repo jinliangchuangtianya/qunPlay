@@ -13,11 +13,17 @@ cc.Class({
        
     },
     onLoad () {
+        wx.showLoading({
+            title: '加载中',
+            mask: true
+        })
         let opt = wx.getLaunchOptionsSync();
         if(!!opt){    //第一次进入
-            this.loginIn(opt)
+            common.isOnesIN = true;
+            this.loginIn(opt);
         }
         wx.onShow(opt=>{  //第一次之后进入
+            common.isOnesIN = false;
             if(opt.query.share == "true"){
                 this.loginIn(opt);
             }
@@ -41,10 +47,37 @@ cc.Class({
                         
                         if(!!opt.query.sceneto){
                             common.opt = opt;
-                                cc.director.loadScene(opt.query.sceneto);
-                            }
-                            else{
-                                cc.director.loadScene("index");
+                           if(common.isOnesIN){
+                            cc.director.preloadScene("woodfish", function () {
+                                cc.director.preloadScene("dice-con", function () {
+                                    cc.director.preloadScene("truth", function () {
+                                        wx.hideLoading();
+                                        cc.director.loadScene(opt.query.sceneto);
+                                    });
+                                });
+                            });
+                           }
+                           else{
+                            cc.director.loadScene(opt.query.sceneto);
+                           }
+                            
+                               
+                    }
+                    else{
+                        if(common.isOnesIN){
+                            cc.director.preloadScene("woodfish", function () {
+                                cc.director.preloadScene("dice-con", function () {
+                                    cc.director.preloadScene("truth", function () {
+                                        wx.hideLoading();
+                                        cc.director.loadScene("index");
+                                    });
+                                });
+                            });
+                        }
+                        else{
+                            cc.director.loadScene("index");
+                        }
+                                
                         }
                     }
                     else{

@@ -50,6 +50,7 @@ cc.Class({
         }
     },
     onLoad () {
+       
         this.more.on("touchstart", ()=>{
             wx.navigateToMiniProgram({
                 appId:"wx091037d85230fd27",

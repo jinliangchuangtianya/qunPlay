@@ -261,7 +261,7 @@ cc.Class({
         let _this = this;
         wx.showModal({
             title:"提示",
-            content: '链接断开',
+            content: '已与服务器断开连接，您可以手动重连',
             cancelText:'退出',
             confirmText:'继续连接',
             success(res){
@@ -331,7 +331,7 @@ cc.Class({
             console.warn("dice-scene登录失败");
             wx.showModal({
                 title:"提示",
-                content: '链接失败',
+                content: '已与服务器断开连接，您可以手动重连',
                 cancelText:'退出',
                 confirmText:'继续连接',
                 success(res){
@@ -377,7 +377,7 @@ cc.Class({
             let _this = this;
             wx.showModal({
                 title:"提示",
-                content: '链接失败',
+                content: '已与服务器断开连接，您可以手动重连',
                 cancelText:'退出',
                 confirmText:'继续连接',
                 success(res){

@@ -135,6 +135,7 @@ cc.Class({
         }
         else{
             console.warn('你不是房主');
+            this.startBnt.y =  this.yqBnt.y;
             this.yqBnt.active = false;
         }
         let correntPlays = this.currentOpens.length;  //当前的人数

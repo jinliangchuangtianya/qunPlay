@@ -16,7 +16,9 @@ cc.Class({
        loginBnt:cc.Node,
        tip:cc.Node,
        battItem:cc.Prefab,
-       scorllConent:cc.Node
+       scorllConent:cc.Node,
+       battStartBtn:cc.Node,
+       goIndexBtn:cc.Node
     },
 
     // LIFE-CYCLE CALLBACKS:
@@ -45,7 +47,10 @@ cc.Class({
             }
             
         }
-       
+        this.goIndexBtn.on('touchstart', function(){
+            cc.director.loadScene('index');
+        },this)
+        this.battStartBtn.on('touchstart', this.goBattScene, this);
     },
     //获取用户相关信息
     getUserInfo(){
@@ -93,6 +98,21 @@ cc.Class({
             })
         }
         
+    },
+    //跳转发起对战场景
+    goBattScene(){
+        let userInfo = wx.getStorageSync('userInfo');
+        if(!!userInfo){
+            cc.director.loadScene('finger-battscene')
+        }
+        else{
+            wx.showModal({
+                title:"提示",
+                content:"登录后才能参与，请点击登录按钮",
+                showCancel:false,
+                confirmText:"知道了"
+            })
+        }
     },
     createAuthorizeBtn() {
         let btnNode = this.loginBnt;

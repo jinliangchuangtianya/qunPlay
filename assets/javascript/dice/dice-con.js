@@ -110,7 +110,7 @@ cc.Class({
             io.readyState = 0;
             wx.showModal({
                 title:"提示",
-                content: '链接断开',
+                content: '已与服务器断开连接，您可以手动重连',
                 cancelText:'退出',
                 confirmText:'重新链接',
                 success(res){
@@ -176,7 +176,7 @@ cc.Class({
         else{
             wx.showModal({
                 title:"提示",
-                content: '链接断开',
+                content: '已与服务器断开连接，您可以手动重连',
                 cancelText:'退出',
                 confirmText:'重新链接',
                 success(res){
@@ -251,7 +251,7 @@ cc.Class({
         else{
             wx.showModal({
                 title:"提示",
-                content: '链接断开',
+                content: '已与服务器断开连接，您可以手动重连',
                 cancelText:'退出',
                 confirmText:'重新链接',
                 success(res){
@@ -315,7 +315,7 @@ cc.Class({
         else{
             wx.showModal({
                 title:"提示",
-                content: '链接断开',
+                content: ' 已与服务器断开连接，您可以手动重连',
                 cancelText:'退出',
                 confirmText:'重新链接',
                 success(res){
@@ -382,12 +382,9 @@ cc.Class({
     },
     createAuthorizeBtn() {
         let btnNode, top,imgUrl;
-        if( this.isJoin ){
-            btnNode = this.joinBtn;
-        }
-        else{
-            btnNode = this.loginBnt;
-        }
+        
+        btnNode = this.loginBnt;
+       
        
         let btnSize = cc.size(btnNode.width,btnNode.height);
         let frameSize = cc.view.getFrameSize();
@@ -397,13 +394,12 @@ cc.Class({
         //适配不同机型来创建微信授权按钮
         let left = (winSize.width*0.5+btnNode.x-btnSize.width*0.5)/winSize.width*frameSize.width;
         if(this.isJoin){
-            top = ( winSize.height*0.5 -btnNode.y -btnSize.height*0.5)/winSize.height*frameSize.height;
             imgUrl = 'https://jx-game.oss-cn-beijing.aliyuncs.com/qunPlay/img/loginBrn3.png';
         }
         else{
-            top = ( (winSize.height - 227) -btnNode.y -btnSize.height*0.5)/winSize.height*frameSize.height;
             imgUrl = 'https://jx-game.oss-cn-beijing.aliyuncs.com/qunPlay/img/loginBrn2.png';
         }
+        top = ( (winSize.height - 227) -btnNode.y -btnSize.height*0.5)/winSize.height*frameSize.height;
         let width = btnSize.width/winSize.width*frameSize.width;
         let height = btnSize.height/winSize.height*frameSize.height;
         // console.log("button pos: ",cc.v2(left,top));
