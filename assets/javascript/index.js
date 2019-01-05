@@ -75,16 +75,16 @@ cc.Class({
             cc.director.loadScene("dice-con");
         })
         this.finger.on("touchstart", ()=>{
-            wx.showModal({
-                title:"提示",
-                content: '正在开发中...敬请期待！',
-                showCancel:false,
-                success(res){
+            // wx.showModal({
+            //     title:"提示",
+            //     content: '正在开发中...敬请期待！',
+            //     showCancel:false,
+            //     success(res){
                    
                    
-                }
-            })
-            //cc.director.loadScene("finger-scene1");
+            //     }
+            // })
+            cc.director.loadScene("finger-scene1");
         })
         wx.showShareMenu({
             withShareTicket: true

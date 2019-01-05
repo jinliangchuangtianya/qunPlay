@@ -25,7 +25,9 @@ cc.Class({
         yhlSprite:cc.SpriteFrame,
         wait:cc.Node,
         exitBtn:cc.Node,
-        goIndexBtn:cc.Node
+        goIndexBtn:cc.Node,
+        playeritemTop:cc.Prefab,
+        playersMaskTop:cc.Node
     },
 
     // LIFE-CYCLE CALLBACKS:
@@ -47,10 +49,13 @@ cc.Class({
         }
         if(common.isDiceFight){
             this.playersCount = Object.keys(common.diceRommInfo.userinfo).length;
+            // this.layersTopArr = []; //显示玩家提示信息 type => prefab
+            // this.showPlayersTop();
            
             this.diceCountArr = [];  //点数
         
             this.players = [];   //初始化当前游戏玩家的数组集合 type => prefab
+           
             this.timer = null;
             this.border.active = this.goIndexBtn.active = false;
             this.okBnt.active = true;
@@ -102,6 +107,18 @@ cc.Class({
 
         this.group.getChildByName("yao").on("touchstart", this.playIng, this);
        
+    },
+    //显示当前成员，但是顺序不确定
+    showPlayersTop(){
+        this.playersMaskTop.zIndex = 120;
+        for(let attr in common.diceRommInfo.userinfo){
+            let item = cc.instantiate(this.playeritemTop);
+            item.parent = this.playersMaskTop;
+            item.openid = attr;
+            item.stage = 1;
+            this.layersTopArr.push(item)
+            item.getComponent('playeritemTop').init(common.diceRommInfo.userinfo[attr]);
+        }
     },
     changeCountHandel(type){
         //console.warn(e, type, 123)
@@ -234,8 +251,8 @@ cc.Class({
                     case 'rspGamePlay':
                         this.rspGamePlay(data)
                         break;   //
-                    case 'rspGetRoom':
-                        this.rspGetRoom(data)
+                    case 'rspGetRooms':
+                        this.rspGetRooms(data)
                         break;   //rspGetRoom
                     case 'rspDiceOver':
                         this.rspDiceOver(data)
@@ -368,7 +385,7 @@ cc.Class({
         }
     },
     //重连之后的回调
-    rspGetRoom(data){
+    rspGetRooms(data){
         data = pb.GetRooms.decode(data.buf);
         if(data.rspGetRoom.code == 200){
             console.warn('重新连接成功')
@@ -484,10 +501,23 @@ cc.Class({
         let _this = this;
         data =  pb.JoinRoom.decode(data.buf);
         if(data.rspJoinRoom.code == 200){
-           
-            console.warn("create-room新成员加入" + data.rspJoinRoom.msg);
+            console.warn("dice-scene 新成员加入" + data.rspJoinRoom.msg);
             common.diceRommInfo =  data.rspJoinRoom.roominfo;
             this.playersCount = Object.keys(common.diceRommInfo.userinfo).length;
+
+            let userStatus = common.diceRommInfo.userStatus;
+            for(let attr in userStatus){
+                if(userStatus[attr] == 1){
+                    let topPlayer = this.players.find(item=>{
+                        return item.openid == attr;
+                    })
+                    if(!topPlayer.isWaing){
+                        topPlayer.isWaing = true;
+                        topPlayer.getComponent('play-item').isStartIng.active = true;
+                    }
+                }
+            }
+
             if( this.playersCount <= 1){
                 console.warn("create-room, 都退出了");
                
@@ -500,6 +530,7 @@ cc.Class({
                     }
                 })
             }
+            
         }
         else{
             console.warn("加入房间失败,code=" + data.rspJoinRoom.code);
@@ -517,6 +548,11 @@ cc.Class({
         for(let i=0; i<this.players.length; i++){
             this.players[i].getChildByName('dices').opacity = 255;
         }
+
+        // for(let i=0; i<this.layersTopArr.length; i++){
+        //     this.layersTopArr[i].stage = 3;
+        //     this.layersTopArr[i].getComponent('playeritemTop').changeMask('waitIng')
+        // }
         
     },
     //本轮结束
@@ -555,11 +591,23 @@ cc.Class({
             this.okBnt.getChildByName('yhl').getComponent(cc.Sprite).spriteFrame = this.yhlSprite;
             this.yaoBtn.active = true;
         }
-        if(!this.isReady) return;
         data =  pb.Dice.decode(data.buf);
         console.warn(data, 'data')
         let players = data.usersort;
         console.warn(players,players.length, 'players')
+        // for(let i=0; i<players.length; i++){
+        //     let topPlayer = this.layersTopArr.find(item=>{
+        //         return item.openid == players[i];
+        //     })
+        //     if(!!topPlayer){
+        //         if(topPlayer.stage == 1){
+        //             topPlayer.stage = 2;
+        //             topPlayer.getComponent('playeritemTop').changeMask('tzOver');
+        //         }
+        //     }
+        // }
+        if(!this.isReady) return;
+       
         for(let i=0; i<players.length; i++){
             let openid = players[i];
             let currentPlayer = this.players.find(item=>{
@@ -574,6 +622,7 @@ cc.Class({
                 item.getComponent('play-item').init(common.diceRommInfo.userinfo[openid], data.usernum[openid]);
             }
         }
+       
         if(this.players.length ==  this.playersCount && !this.okBnt.active){
             this.okBnt.active = true;
             this.startStage = 2;

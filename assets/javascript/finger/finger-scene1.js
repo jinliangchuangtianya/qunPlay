@@ -132,7 +132,7 @@ cc.Class({
         let self = this;
         self.btnAuthorize = wx.createUserInfoButton({
             type: 'image',
-            image:'https://jx-game.oss-cn-beijing.aliyuncs.com/qunPlay/img/login.png',
+            image:'https://jx-game.oss-cn-beijing.aliyuncs.com/qunPlay/img/login3.png',
             style: {
                 left: left,
                 top: top,

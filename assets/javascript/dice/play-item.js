@@ -10,7 +10,8 @@ cc.Class({
             
         },
         avatarUrl:cc.Sprite,
-        openPlay:cc.Node
+        openPlay:cc.Node,
+        isStartIng:cc.Node
     },
 
     // onLoad () {},

@@ -1811,8 +1811,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 318,
-      "height": 91
+      "width": 700,
+      "height": 98
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -1822,7 +1822,7 @@
     "_position": {
       "__type__": "cc.Vec3",
       "x": 0,
-      "y": 9.100000000000023,
+      "y": -67,
       "z": 0
     },
     "_scale": {
@@ -1857,10 +1857,10 @@
     "_srcBlendFactor": 770,
     "_dstBlendFactor": 771,
     "_spriteFrame": {
-      "__uuid__": "fb3d026f-9f06-4355-ac5c-4271dc9044c6"
+      "__uuid__": "8be68f5c-cb34-42f4-96ef-fb79dc7cdfd3"
     },
     "_type": 0,
-    "_sizeMode": 1,
+    "_sizeMode": 2,
     "_fillType": 0,
     "_fillCenter": {
       "__type__": "cc.Vec2",
@@ -1884,7 +1884,7 @@
     "_enabled": true,
     "alignMode": 1,
     "_target": null,
-    "_alignFlags": 1,
+    "_alignFlags": 0,
     "_left": 0,
     "_right": 0,
     "_top": 612.4,
@@ -1923,15 +1923,15 @@
     "_opacity": 255,
     "_color": {
       "__type__": "cc.Color",
-      "r": 0,
-      "g": 0,
-      "b": 0,
+      "r": 255,
+      "g": 255,
+      "b": 255,
       "a": 255
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 280,
-      "height": 40
+      "width": 0,
+      "height": 30
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -1941,7 +1941,7 @@
     "_position": {
       "__type__": "cc.Vec3",
       "x": 0,
-      "y": 127,
+      "y": 147,
       "z": 0
     },
     "_scale": {
@@ -1976,10 +1976,10 @@
     "_srcBlendFactor": 1,
     "_dstBlendFactor": 771,
     "_useOriginalSize": false,
-    "_string": "登录后才能参与",
-    "_N$string": "登录后才能参与",
-    "_fontSize": 40,
-    "_lineHeight": 40,
+    "_string": "",
+    "_N$string": "",
+    "_fontSize": 30,
+    "_lineHeight": 30,
     "_enableWrapText": true,
     "_N$file": null,
     "_isSystemFontUsed": true,

@@ -1,0 +1,45 @@
+{
+  "__type__": "cc.AnimationClip",
+  "_name": "yao",
+  "_objFlags": 0,
+  "_native": "",
+  "_duration": 0.15,
+  "sample": 40,
+  "speed": 1,
+  "wrapMode": 1,
+  "curveData": {
+    "props": {
+      "rotation": [
+        {
+          "frame": 0,
+          "value": -7
+        },
+        {
+          "frame": 0.025,
+          "value": 14
+        },
+        {
+          "frame": 0.05,
+          "value": -3
+        },
+        {
+          "frame": 0.075,
+          "value": 10
+        },
+        {
+          "frame": 0.1,
+          "value": -2
+        },
+        {
+          "frame": 0.125,
+          "value": 9
+        },
+        {
+          "frame": 0.15,
+          "value": 0
+        }
+      ]
+    }
+  },
+  "events": []
+}

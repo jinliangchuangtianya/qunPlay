@@ -13,11 +13,14 @@ cc.Class({
         tcBtn:cc.Node,
         startBntText:cc.Sprite,
         waitIngText:cc.SpriteFrame,
-        startFame:cc.SpriteFrame
+        startFame:cc.SpriteFrame,
+        roomid:cc.Label
     },
 
 
     onLoad () {
+
+        this.roomid.string = '房间号:' + common.diceRommInfo.roomId;
 
         this.ischangeHandle = false;  //是否是停止进程
 
@@ -31,6 +34,7 @@ cc.Class({
         this.yqBnt.on('touchstart',this.onshar,this);
         this.startBnt.on('touchstart', this.onStartPlay, this);
 
+        onfire.on("onopen",this.onopen.bind(this));
         onfire.on("onmessage",this.onMessage.bind(this));
         onfire.on("onclose",this.onclose.bind(this));
 
@@ -41,6 +45,9 @@ cc.Class({
         console.log(data, 'create-room  接收回调');
         
         switch (data.name) {
+            case 'rspLogin':
+                this.rspLogin(data)
+                break;
             case 'rspJoinRoom':
                 this.rspJoinRoom(data)
                 break;
@@ -57,18 +64,102 @@ cc.Class({
                 break;
         }
     },
+    onopen (data) {
+        this.login();
+    },
+    //登录
+    login(){
+       
+        if(io.readyState == 1){
+            wx.showLoading({
+                title: '链接断开请重新加入',
+                mask:true
+            })
+            
+            let openId = wx.getStorageSync('openId');
+            let data = {
+                nickname:JSON.parse(wx.getStorageSync('userInfo')).nickName,
+                headhash:JSON.parse(wx.getStorageSync('userInfo')).avatarUrl
+            }
+
+            if(!!openId){
+                data.openid = openId;
+            }
+            else{
+                data.code = wx.getStorageSync('code');
+            }
+
+            let reqLogin = pb.ReqLogin.create(data)
+            let message = pb.Login.create({reqLogin});
+            var bytes =  pb.Login.encode(message).finish(); //获取二进制数据，一定要注意使用finish函数
+            io.send(bytes, "Login")
+        }
+        else{
+            wx.showModal({
+                title:"提示",
+                content: '已与服务器断开连接，您可以手动重连',
+                cancelText:'退出',
+                confirmText:'重新链接',
+                success(res){
+                    if (res.confirm) {
+                        io.connect();
+                    } else if (res.cancel) {
+                        common.opt = {};
+                        cc.director.loadScene('index');
+                    }
+                   
+                }
+            })
+        }
+        
+    
+    },
+    //登录回调
+    rspLogin(data){
+        data =  pb.Login.decode(data.buf);
+        console.warn(data, 'dice-con登录回调')
+        if(data.rspLogin.code == 200){
+            console.warn("dice-con登录" + data.rspLogin.msg);
+            this.OutRooms();
+        }
+        else{
+            this.islogin = false;
+            wx.showModal({
+                title:"提示",
+                content: '登录失败',
+                cancelText:'退出',
+                confirmText:'重新登录',
+                success(res){
+                    if (res.confirm) {
+                        this.login();
+                    } else if (res.cancel) {
+                        common.opt = {};
+                        io.readyState = 0;
+                        io.close();
+                        cc.director.loadScene('index');
+                    }
+                   
+                }
+            })
+        }
+    },
     onclose(err){
+        let _this = this;
         console.warn(err, "create-room 链接关闭")
         if(io.readyState == 1){
             this.ischangeHandle = true;
             io.readyState = 0;
-            common.opt.query.roomid = common.diceRommInfo.roomId;
+            common.opt.query = {
+                roomid:common.diceRommInfo.roomId
+            }
             wx.showModal({
                 title:"提示",
                 content:"链接断开请重新加入",
                 showCancel:false,
                 success(){
-                    cc.director.loadScene("dice-con")
+                    _this.resLodin = true;
+                    io.connect();
+                    //cc.director.loadScene("dice-con")
                 }
             })
         }
@@ -113,12 +204,22 @@ cc.Class({
     rspOutRooms(data){
         data =  pb.OutRooms.decode(data.buf);
         if(data.rspOutRoom.code == 200){
+            
             console.warn("create-room退出房间" + data.rspOutRoom.msg);
             io.readyState = 0;
             io.close();
-            common.opt = {};
-            common.diceRommInfo = null;
-            cc.director.loadScene("index")
+            if( !this.resLodin ){
+                common.opt = {};
+                common.diceRommInfo = null;
+                cc.director.loadScene("index")
+            }
+            else{
+                setTimeout(()=>{
+                    wx.hideLoading();
+                    cc.director.loadScene("dice-con")
+                },500)
+               
+            }
         }
         else{
             console.warn("退出房间失败,code=" + data.rspOutRoom.code);
@@ -277,6 +378,7 @@ cc.Class({
         
         onfire.un("onmessage");
         onfire.un("onclose");
+        onfire.un("onopen");
     },
     // update (dt) {},
 });

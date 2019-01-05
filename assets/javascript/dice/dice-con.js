@@ -15,18 +15,21 @@ cc.Class({
         dices:cc.Node,
         diceLabel:cc.Label,
         addBtn:cc.Node,
-        subBtn:cc.Node
+        subBtn:cc.Node,
+        exitBtn:cc.Node
     },
     onLoad () {
          
         //初始化筛子数量为6
         this.diceCount = 6;
         this.addBtn.opacity = 76;
+        this.islogin = false;  //是否登录成功
+        io.connect();
 
         if(!!common.opt.query && !!common.opt.query.roomid){
             this.isJoin = true;
             this.btns.active = false;
-            this.joinBtn.active = this.joinBtn.active = true;
+            //this.joinBtn.active = true;
         }
         else{
             this.btns.active = this.dices.active = true;
@@ -34,8 +37,6 @@ cc.Class({
             this.isJoin = false;
         }
 
-        this.islogin = false;  //是否登录成功
-        io.connect();
         this.onmessageFire = onfire.on("onmessage",this.onMessage.bind(this));
         onfire.on("onopen",this.onopen.bind(this));
         onfire.on("onerror",this.onerror.bind(this));
@@ -44,7 +45,14 @@ cc.Class({
         let userInfo = wx.getStorageSync('userInfo');
         if(!!userInfo){
             if( this.isJoin ){
-                this.joinBtn.active = true;
+                //this.joinBtn.active = true;
+                if(io.readyState == 1){
+                    this.GetRooms(common.opt.query.roomid);
+                }
+                else{
+                    this.isGetRooms = true;
+                }
+                
             }
             else{
                 this.createBtn.active = true;
@@ -53,14 +61,21 @@ cc.Class({
         }
         else{
             if( this.isJoin ){
-                this.joinBtn.active = false;
+                //this.joinBtn.active = false;
+                if(io.readyState == 1){
+                    this.GetRooms(common.opt.query.roomid);
+                }
+                else{
+                    this.isGetRooms = true;
+                }
             }
             else{
                 this.createBtn.active = false;
                 this.dices.active = true;
+                this.createAuthorizeBtn();
             }
             
-            this.createAuthorizeBtn();
+            
         }
     },
     onMessage:function(data){
@@ -79,12 +94,16 @@ cc.Class({
              case 'rspJoinRoom':
                 this.rspJoinRoom(data)
                 break;
-            default:
-                break;
+            case 'rspGetRooms':
+                this.rspGetRooms(data)
+                break;   //rspGetRoom
         }
     },
     onopen (data) {
         console.warn(data, "dice-con 链接打开成功");
+        if(!!this.isGetRooms){
+            this.GetRooms(common.opt.query.roomid);
+        }
     },
     onerror(){
         let _this = this;
@@ -124,6 +143,85 @@ cc.Class({
                 }
             })
         }
+    },
+    //取房间信息
+    GetRooms(roomid){
+            let reqGetRoom = pb.ReqGetRoom.create({
+                roomid,
+            })
+            let message = pb.GetRooms.create({
+                reqGetRoom
+            })
+            var bytes =  pb.GetRooms.encode(message).finish(); //获取二进制数据，一定要注意使用finish函数
+            io.send(bytes, "GetRooms")
+    },
+    //取房间信息的回调
+    rspGetRooms(data){
+        data = pb.GetRooms.decode(data.buf);
+        console.warn(data, '222222222222222')
+        if(data.rspGetRoom.code == 200){
+            if(!!data.rspGetRoom.roominfo[0].roomStatus && data.rspGetRoom.roominfo[0].roomStatus == 1){
+                this.exitBtn.active = false;
+                wx.showModal({
+                    title:"提示",
+                    content: '游戏已经开始',
+                    showCancel:false,
+                    success(){
+                        common.opt = {};
+                        io.readyState = 0;
+                        io.close();
+                        cc.director.loadScene('index');
+                    }
+                })
+            }
+            else{
+                let iLen = Object.keys(data.rspGetRoom.roominfo[0].userinfo).length;
+                if(iLen > data.rspGetRoom.roominfo[0].number){
+                    this.exitBtn.active = this.joinBtn.active = false;
+                    if(!!this.btnAuthorize){
+                        this.btnAuthorize.style.hidden = true;
+                    }
+                    wx.showModal({
+                        title:"提示",
+                        content: '人数已满',
+                        showCancel:false,
+                        success(){
+                            common.opt = {};
+                            io.readyState = 0;
+                            io.close();
+                            cc.director.loadScene('index');
+                        }
+                    })
+                }
+                else{
+                    let userInfo = wx.getStorageSync('userInfo');
+                    if(!!userInfo){
+                        this.joinBtn.active = true;
+                    }
+                    else{
+                        this.createAuthorizeBtn();
+                    }
+                }
+            }
+        }
+        else{
+            this.exitBtn.active = this.joinBtn.active = false;
+            if(!!this.btnAuthorize){
+                this.btnAuthorize.style.hidden = true;
+            }
+            wx.showModal({
+                title:"提示",
+                content: '房间不存在',
+                showCancel:false,
+                success(){
+                    common.opt = {};
+                    io.readyState = 0;
+                    io.close();
+                    cc.director.loadScene('index');
+                }
+            })
+        }
+        
     },
     gotoScene(e,scename){
         if(scename == 'create-room' || scename == 'join-room'){
@@ -397,7 +495,7 @@ cc.Class({
             imgUrl = 'https://jx-game.oss-cn-beijing.aliyuncs.com/qunPlay/img/loginBrn3.png';
         }
         else{
-            imgUrl = 'https://jx-game.oss-cn-beijing.aliyuncs.com/qunPlay/img/loginBrn2.png';
+            imgUrl = 'https://jx-game.oss-cn-beijing.aliyuncs.com/qunPlay/img/loginBrn5.png';
         }
         top = ( (winSize.height - 227) -btnNode.y -btnSize.height*0.5)/winSize.height*frameSize.height;
         let width = btnSize.width/winSize.width*frameSize.width;
