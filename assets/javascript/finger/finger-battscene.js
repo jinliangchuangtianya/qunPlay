@@ -106,6 +106,13 @@ cc.Class({
                     return item;
                 });
                 for(let i=0; i<list.length; i++){
+                    //暂时关闭木鱼
+                    console.warn(list[i], 'list')
+                    if(list[i].type == 4){
+                        continue;
+                    }
+
+
                     let item = cc.instantiate(this.cfitem);
                     this.cfItmesArr.push(item);
                     item.parent = this.view;
@@ -114,8 +121,13 @@ cc.Class({
                 console.warn(list);
                 let currentCfitem = wx.getStorageSync('currentCfitem');
                 if(!currentCfitem){
-                    wx.setStorageSync('currentCfitem', JSON.stringify(list[0]));
-                    this.tips.string = list[0].title;
+
+                    // wx.setStorageSync('currentCfitem', JSON.stringify(list[0]));
+                    // this.tips.string = list[0].title;
+                    
+                    //暂时关闭木鱼
+                    wx.setStorageSync('currentCfitem', JSON.stringify(list[1]));
+                    this.tips.string = list[1].title;
                 }
                 else{
                     this.tips.string = JSON.parse(currentCfitem).title;

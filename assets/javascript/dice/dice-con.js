@@ -398,6 +398,7 @@ cc.Class({
     //加入房间
     joinRoom(){
         if(io.readyState == 1){
+            console.warn(common.opt.query.roomid, 'roomid')
             let reqJoinRoom = pb.ReqJoinRoom.create({
                 roomid:common.opt.query.roomid,
                 roomtype:'dice',

@@ -20,7 +20,7 @@ cc.Class({
 
     onLoad () {
 
-        this.roomid.string = '房间号:' + common.diceRommInfo.roomId;
+        this.roomid.string = '房间号: ' + common.diceRommInfo.roomId;
 
         this.ischangeHandle = false;  //是否是停止进程
 
@@ -38,6 +38,8 @@ cc.Class({
         onfire.on("onmessage",this.onMessage.bind(this));
         onfire.on("onclose",this.onclose.bind(this));
 
+        this.timer = null;
+        this.ping();
         this.drowPlayers();
 
     },
@@ -66,6 +68,16 @@ cc.Class({
     },
     onopen (data) {
         this.login();
+        this.ping();
+    },
+    //心跳
+    ping(){
+        clearInterval(this.timer);
+        this.timer = setInterval(()=>{
+            let message = pb.Ping.create();
+            var bytes =  pb.Ping.encode(message).finish(); //获取二进制数据，一定要注意使用finish函数
+            io.send(bytes, "Ping")
+        },1000)
     },
     //登录
     login(){
@@ -144,6 +156,7 @@ cc.Class({
         }
     },
     onclose(err){
+        clearInterval(this.timer);
         let _this = this;
         console.warn(err, "create-room 链接关闭")
         if(io.readyState == 1){
@@ -202,6 +215,7 @@ cc.Class({
     },
     // //退出房间回调
     rspOutRooms(data){
+        clearInterval(this.timer);
         data =  pb.OutRooms.decode(data.buf);
         if(data.rspOutRoom.code == 200){
             
@@ -369,6 +383,7 @@ cc.Class({
         })
     },
     onDestroy:function(){
+        clearInterval(this.timer);
         if(!!this.btnAuthorize){
             this.btnAuthorize.style.hidden = true;
         }

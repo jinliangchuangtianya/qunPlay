@@ -18,7 +18,19 @@ cc.Class({
        battItem:cc.Prefab,
        scorllConent:cc.Node,
        battStartBtn:cc.Node,
-       goIndexBtn:cc.Node
+       goIndexBtn:cc.Node,
+       jlItem:cc.Prefab,
+       selfScore:cc.Label,
+       otherScore:cc.Label,
+       selfAvatar:cc.Sprite,
+       otherAtavar:cc.Sprite,
+       selfName:cc.Label,
+       otherName:cc.Label,
+       conentView:cc.Node,
+       banner:cc.Node,
+       infoNode:cc.Node,
+       model:cc.Node,
+       goBtn2:cc.Node
     },
 
     // LIFE-CYCLE CALLBACKS:
@@ -51,6 +63,7 @@ cc.Class({
             cc.director.loadScene('index');
         },this)
         this.battStartBtn.on('touchstart', this.goBattScene, this);
+        this.goBtn2.on('touchstart', this.hideModel, this);
     },
     //获取用户相关信息
     getUserInfo(){
@@ -64,6 +77,7 @@ cc.Class({
                 .then(res=>{
                     wx.hideLoading();
                     if(res.data.code == 200){
+                        console.warn(res, 'aaaaaaaaaaaaaa')
                         let selfInfo = res.data.selfInfo;
                         let list = res.data.data;
                                         
@@ -161,6 +175,73 @@ cc.Class({
             this.tip.active = false;
             this.getUserInfo();
         });
+    },
+    //显示记录列表
+    showModel(pkid){
+        wx.showLoading({
+            title:'加载中',
+            mask:false
+        })
+        let data={
+            pkid,
+        },sessionId = wx.getStorageSync("sessionId"),path = "/api/getbattledetail";
+        post(path,data,sessionId).then(res=>{
+           
+
+            this.selfScore.string = res.data.selfWinCount;
+            this.otherScore.string = res.data.oppoWinCount;
+
+            cc.loader.load({
+                url:  res.data.opponentInfo.avatar,
+                type: 'png'
+            }, (err, texture) => {
+                if (err) console.error(err);
+                this.otherAtavar.spriteFrame = new cc.SpriteFrame(texture);
+            });
+            cc.loader.load({
+                url:  res.data.selfInfo.avatar,
+                type: 'png'
+            }, (err, texture) => {
+                if (err) console.error(err);
+                this.selfAvatar.spriteFrame = new cc.SpriteFrame(texture);
+            });
+            this.selfName.string = res.data.selfInfo.nickname;
+            this.otherName.string = res.data.opponentInfo.nickname;
+
+           
+            for(let i=0; i<res.data.data.length; i++){
+                let item = cc.instantiate(this.jlItem);
+                item.parent = this.conentView;
+                item.getComponent('jl-item').init(res.data.data[i]);
+            }
+           
+            this.runModel(); 
+               
+        });
+    },
+    runModel(){
+        wx.hideLoading();
+
+        this.scrollView.pauseSystemEvents(true);
+        this.infoNode.pauseSystemEvents(true);
+        this.banner.pauseSystemEvents(true);
+        this.goIndexBtn.pauseSystemEvents(true);
+        let action = cc.moveTo(0.2, 0, 0);
+        
+        this.model.runAction(action);
+    },
+    hideModel(){
+        this.scrollView.resumeSystemEvents(true);
+        this.infoNode.resumeSystemEvents(true);
+        this.banner.resumeSystemEvents(true);
+        this.goIndexBtn.resumeSystemEvents(true);
+
+        let finished = cc.callFunc(function(){
+            this.conentView.removeAllChildren();
+        }, this);
+        var seq = cc.sequence(cc.moveTo(0.1, 750, 0), finished);
+        this.model.runAction(seq);
+       
     },
     onDisable(){
         if(!!this.btnAuthorize){

@@ -60,7 +60,7 @@
   {
     "__type__": "cc.Node",
     "_name": "Canvas",
-    "_objFlags": 512,
+    "_objFlags": 0,
     "_parent": {
       "__id__": 1
     },
@@ -504,7 +504,7 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 230.37,
+      "width": 0,
       "height": 40
     },
     "_anchorPoint": {
@@ -550,8 +550,8 @@
     "_srcBlendFactor": 1,
     "_dstBlendFactor": 771,
     "_useOriginalSize": false,
-    "_string": "敲木鱼200下",
-    "_N$string": "敲木鱼200下",
+    "_string": "",
+    "_N$string": "",
     "_fontSize": 40,
     "_lineHeight": 40,
     "_enableWrapText": true,

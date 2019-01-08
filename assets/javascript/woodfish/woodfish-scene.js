@@ -85,6 +85,29 @@ cc.Class({
             this.gu.setScale(1.5);
         }
 
+        this.node.on('changeDJtype', function (id) {
+            if(id == 1){
+                this.changeGu.active =  true;
+                this.gu.setScale(0);
+                this.gu.active = false;
+                this.muyu.active = this.muyuRun.active = true;
+                this.muyu.setScale(0.6);
+                this.muyuRun.setScale(0.6);
+                this.changeType('gu')
+            }
+            else if(id == 11){
+                this.changeMy.active = true;
+                this.muyu.setScale(0);
+                this.muyuRun.setScale(0);
+                this.muyu.active = this.muyuRun.active = false;
+                
+                this.gu.active = true;
+                this.gu.setScale(1.5);
+                this.changeType('muyu')
+                
+            }
+        }, this);
+
         this.gumian.on("touchstart", this.gamePlay, this);
         this.changeGu.on('touchstart', this.changeType.bind(this, 'muyu'));
         this.changeMy.on('touchstart', this.changeType.bind(this, 'gu'))
@@ -535,6 +558,9 @@ cc.Class({
     changeMusic(){
         let link = JSON.parse(wx.getStorageSync("currentMusic")).link;
         let id = JSON.parse(wx.getStorageSync("currentMusic")).id;
+        if( id == 1 || id == 11){
+            this.node.emit('changeDJtype', id);
+        }
         if(this.myaudio.src == link || id == 1 || id == 11){
             return;
         }

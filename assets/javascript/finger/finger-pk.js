@@ -66,7 +66,15 @@ cc.Class({
         tipover:cc.Node,
         aliginBtn:cc.Node,
         inputBtn:cc.Node,
-        ylTitle:cc.Label
+        ylTitle:cc.Label,
+        jvBntFarme:{
+            default:[],
+            type:cc.SpriteFrame
+        },
+        jvItem:cc.Prefab,
+        selfscore:cc.Label,
+        otherScore:cc.Label,
+        contentView:cc.Node
     },
 
     // LIFE-CYCLE CALLBACKS:
@@ -94,9 +102,9 @@ cc.Class({
         this.isYl = false;
         this.animState = false;
         
-        if(cc.director.getWinSize().height >= 1600 ){
-            this.jvBtn.x = -300;
-        }
+        // if(cc.director.getWinSize().height >= 1600 ){
+        //     this.jvBtn.x = -300;
+        // }
 
         let _this = this;
         this.other = common.opt.query;
@@ -135,15 +143,16 @@ cc.Class({
 
         this.winBtn.on('touchstart', function(){
             this.isTx = true;
-            wx.showModal({
-                content:'提醒完成任务'
-            })
+            cc.director.loadScene('finger-battscene');
         },this)
 
         this.lostBtn.on('touchstart', this.gamaOver,this)
 
         this.jvBtn.on('touchstart',()=>{
             if(!this.mask.active){
+                this.battGroup.pauseSystemEvents(true);
+                this.zsGroup.pauseSystemEvents(true);
+
                 this.getjvList();
 
                 //this.showMask('showTopModel');
@@ -183,7 +192,8 @@ cc.Class({
                     ylBoxanim.on('stop',function(){
                         this.ylGroup.active = false;
                         this.tipover.active = this.aliginBtn.active = true;
-                        
+                        this.battGroup.getChildByName('b11').getChildByName('noover').active = false;
+                        this.battGroup.getChildByName('b11').getChildByName('isover').active = true;
                     },this)
                 }
             },1000)
@@ -208,6 +218,8 @@ cc.Class({
             ylBoxanim.on('stop',function(){
                 this.tipover.active = this.aliginBtn.active = true;
                 this.ylGroup.active = false;
+                this.battGroup.getChildByName('b11').getChildByName('noover').active = false;
+                this.battGroup.getChildByName('b11').getChildByName('isover').active = true;
             },this)
             this.desYl();
         }
@@ -390,6 +402,7 @@ cc.Class({
             this.battGroup.getChildByName('b11').getChildByName('title').getComponent(cc.Label).string = b.decode(data.contract);
 
             if(status == 2){
+                this.battGroup.getChildByName('b11').getChildByName('noover').active = true;
                 if(isWin == 'lose'){
                     this.result = 'lost';
                     
@@ -416,6 +429,7 @@ cc.Class({
                 }
             }
             else if(status == 3){
+                this.battGroup.getChildByName('b11').getChildByName('isover').active = true;
                 this.punishmentl.active = false;
                 if(data.is_destroy == 0){
                     this.ylTitle.string = b.decode(data.contract);
@@ -424,6 +438,7 @@ cc.Class({
                         this.ylGroup.active = true;
                     }
                     else if(data.punishment_type == 2){
+                        console.warn(data['contract_content'], 'contract_content')
                         cc.loader.load({
                             url:  data['contract_content'],
                             type: 'png'
@@ -517,10 +532,21 @@ cc.Class({
         }
         post(path, data, sessionId)
         .then(res=>{
-            wx.hideLoading()
+            wx.hideLoading();
            if(res.data.code == 200){
                 let data = res.data.data;
+                this.jvBtn.getComponent(cc.Sprite).spriteFrame = this.jvBntFarme[1];
+                this.selfscore.string = res.data.selfWinCount;
+                this.otherScore.string = res.data.oppoWinCount;
                 this.showMask('showTopModel');
+                
+                for(let i=0; i<data.length; i++){
+                    let item = cc.instantiate(this.jvItem);
+                    item.getComponent('pkjv-item').init(data[i]);
+                    item.parent = this.contentView;
+                }
+
+                
            }
         })
     },
@@ -584,6 +610,7 @@ cc.Class({
       },
     //上传图片
     sendimg(){
+        console.warn(this.upimgdata, '_this.upimgdata')
         wx.showLoading({
             title:'上传中',
             mask:true
@@ -594,7 +621,7 @@ cc.Class({
             filePath: _this.upimgdata,
             name: 'photo',
             success(res) {
-               
+                
                 let data = JSON.parse(res.data);
                 if(data.error == 0){
                      wx.hideLoading();  
@@ -755,20 +782,12 @@ cc.Class({
         console.warn(this.result, this.isOver, 'this.isOver')
         if(this.result == 'win'){
             battscene.getChildByName('win').active = true;
-            if(this.isTx){
-                battscene.getChildByName('win').getChildByName('fg-tixing-ta-small-sel').active = true;
-            }
-            else{
-                battscene.getChildByName('win').getChildByName('fg-tixing-ta-small').active = true;
-                battscene.getChildByName('win').getChildByName('fg-tixing-ta-small').on('touchstart',function(){
-                    this.isTx = true;
-                    battscene.getChildByName('win').getChildByName('fg-tixing-ta-small-sel').active = true;
-                    battscene.getChildByName('win').getChildByName('fg-tixing-ta-small').active = false;
-                },this)
-            }
-            battscene.getChildByName('win').getChildByName('fg-zailai-yiju').on('touchstart',function(){
-                cc.director.loadScene('finger-battscene');
-            },this)
+            battscene.getChildByName('win').getChildByName('fg-tixing-ta-small-sel').active = false;
+            battscene.getChildByName('win').getChildByName('fg-tixing-ta-small').active = false;
+               
+            battscene.getChildByName('btn-again-yiju').active = true;
+
+            
             
         }
         else if(this.result == 'lost'){
@@ -779,15 +798,18 @@ cc.Class({
             else{
                 if(this.other.batype == 1){
                     battscene.getChildByName('input').active = true;
+                    battscene.getChildByName('noover').active = true;
                 }
                 else if(this.other.batype == 2){
                     battscene.getChildByName('update').active = true;
+                    battscene.getChildByName('noover').active = true;
                 }
                 else if(this.other.batype == 3){
                     battscene.getChildByName('btn-again-yiju').active = true;
                     battscene.getChildByName('btn-again-yiju').on('touchstart',function(){
                         cc.director.loadScene('finger-battscene');
                     },this)
+                    battscene.getChildByName('isover').active = true;
                 }
                 else if(this.other.batype == 4){
                     battscene.getChildByName('tip').getComponent(cc.Label).string = '小惩罚';
@@ -795,9 +817,10 @@ cc.Class({
                     battscene.getChildByName('muyu').getChildByName('btn-send-pic').on('touchstart',function(){
                         cc.director.loadScene('finger-muyu');
                     },this)
+                    battscene.getChildByName('noover').active = true;
                 }
+               
             }
-            
         }
         else if(this.result == 'ping'){
             battscene.getChildByName('btn-again-yiju').active = true;
@@ -844,6 +867,9 @@ cc.Class({
         let action = cc.moveTo(0.2, 0, this.jvmodel.y + this.jvmodel.height + 100);
         let finished = cc.callFunc(function(){
             this.isClick = true;
+            this.battGroup.resumeSystemEvents(true);
+            this.zsGroup.resumeSystemEvents(true);
+            this.jvBtn.getComponent(cc.Sprite).spriteFrame = this.jvBntFarme[0]
         }, this);
         let seq = cc.sequence(action, finished);
         this.jvmodel.runAction(seq);

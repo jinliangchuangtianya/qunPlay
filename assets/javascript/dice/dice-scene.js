@@ -27,13 +27,19 @@ cc.Class({
         exitBtn:cc.Node,
         goIndexBtn:cc.Node,
         playeritemTop:cc.Prefab,
-        playersMaskTop:cc.Node
+        playersMaskTop:cc.Node,
+        countNode:cc.Node,
+        threejs:cc.SpriteFrame,
+        twojs:cc.SpriteFrame,
+        onejs:cc.SpriteFrame,
+        zreojs:cc.SpriteFrame
     },
 
     // LIFE-CYCLE CALLBACKS:
 
     onLoad () {
         this.startStage = 1;   //开始按钮的状态
+        this.countjh = 3;
         if(window.wx){
             wx.showShareMenu({
                 withShareTicket: true
@@ -48,6 +54,7 @@ cc.Class({
             })
         }
         if(common.isDiceFight){
+            this.countNode.active = true;
             this.playersCount = Object.keys(common.diceRommInfo.userinfo).length;
             // this.layersTopArr = []; //显示玩家提示信息 type => prefab
             // this.showPlayersTop();
@@ -98,7 +105,7 @@ cc.Class({
 
         if(!!window.wx){
             wx.onAccelerometerChange(function (res) {
-                if(_this.startStage !=1) return;
+                if(_this.startStage !=1 || (_this.countjh == 0)) return;
                 if ((Math.abs(res.x) + Math.abs(res.y) > 2 || Math.abs(res.z) > 6) && !this.isRunIng) {
                     _this.playIng()
                 }
@@ -146,7 +153,20 @@ cc.Class({
         this.diceLabel.string = this.changeCount;
     },
     playIng(){
-        if(this.isPlay) return;
+        if(this.isPlay || (this.countjh == 0)) return;
+        this.countjh --;
+        switch (this.countjh) {
+            case 2:
+                this.countNode.getComponent(cc.Sprite).spriteFrame = this.twojs;
+                break;
+            case 1:
+                this.countNode.getComponent(cc.Sprite).spriteFrame = this.onejs;
+                break;
+            case 0:
+                this.countNode.getComponent(cc.Sprite).spriteFrame = this.zreojs;
+                this.yaoBtn.active = false
+                break;
+        }
         this.isPlay = true;
         if(this.changeCount == this.diceCount){
             this.startMove();
@@ -453,6 +473,7 @@ cc.Class({
                 });
 
                 this.yaoBtn.active = false;
+                this.countNode.active = false;
                 this.okBnt.getChildByName('yhl').getComponent(cc.Sprite).spriteFrame = this.openSprite;
                 this.okBnt.active = false;
             }
@@ -590,6 +611,9 @@ cc.Class({
             this.okBnt.active= true;
             this.okBnt.getChildByName('yhl').getComponent(cc.Sprite).spriteFrame = this.yhlSprite;
             this.yaoBtn.active = true;
+            this.countNode.active = true;
+            this.countNode.getComponent(cc.Sprite).spriteFrame = this.threejs;
+            this.countjh = 3;
         }
         data =  pb.Dice.decode(data.buf);
         console.warn(data, 'data')
