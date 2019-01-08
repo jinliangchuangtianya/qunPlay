@@ -41,8 +41,8 @@
     },
     "_scale": {
       "__type__": "cc.Vec3",
-      "x": 0.4524795262937255,
-      "y": 0.4524795262937255,
+      "x": 0.534375,
+      "y": 0.534375,
       "z": 1
     },
     "_quat": {
@@ -60,7 +60,7 @@
   {
     "__type__": "cc.Node",
     "_name": "Canvas",
-    "_objFlags": 512,
+    "_objFlags": 0,
     "_parent": {
       "__id__": 1
     },
@@ -4543,7 +4543,7 @@
   {
     "__type__": "cc.Node",
     "_name": "musicList",
-    "_objFlags": 512,
+    "_objFlags": 0,
     "_parent": {
       "__id__": 2
     },
@@ -4850,7 +4850,7 @@
     "_spacingX": 0,
     "_N$horizontalAlign": 1,
     "_N$verticalAlign": 1,
-    "_N$fontFamily": "Arial",
+    "_N$fontFamily": "微软雅黑",
     "_N$overflow": 0,
     "_id": "9bSEy0uc9GsI9K5e+KICHm"
   },

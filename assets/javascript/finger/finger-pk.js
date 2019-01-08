@@ -414,10 +414,16 @@ cc.Class({
                             this.battGroup.getChildByName('b11').getChildByName('update').active = true;
                             break;
                         case 3:
-                            this.battGroup.getChildByName('b11').getChildByName('muyu').active = true;
+                            this.aliginBtn.active = true;
                             break;
                         case 4:
-                            this.aliginBtn.active = true;
+                            common.opt.query = {
+                                pkid:data.pkid
+                            }
+                            this.battGroup.getChildByName('b11').getChildByName('muyu').active = true;
+                            this.battGroup.getChildByName('b11').getChildByName('muyu').getChildByName('btn-send-pic').on('touchstart',function(){
+                                cc.director.loadScene('finger-muyu');
+                            },this)
                             break;
                     }
                 }
@@ -426,11 +432,16 @@ cc.Class({
                     this.battGroup.getChildByName('b11').getChildByName('win').active = true;
                     this.aliginBtn.active = true;
                     this.battGroup.getChildByName('b11').getChildByName('win').getChildByName('fg-zailai-yiju').active = false;
+                    if(data['punishment_type'] == 4){
+                        this.battGroup.getChildByName('b11').getChildByName('win').getChildByName('fg-wei-confirm').active = false;
+                        this.battGroup.getChildByName('b11').getChildByName('win').getChildByName('fg-punish-add-img').active = true;
+                    }
                 }
             }
             else if(status == 3){
                 this.battGroup.getChildByName('b11').getChildByName('isover').active = true;
                 this.punishmentl.active = false;
+
                 if(data.is_destroy == 0){
                     this.ylTitle.string = b.decode(data.contract);
                     if(data.punishment_type == 1){
@@ -469,7 +480,12 @@ cc.Class({
                         this.battGroup.getChildByName('b11').getChildByName('win').getChildByName('fg-zailai-yiju').active = false;
                         this.battGroup.getChildByName('b11').getChildByName('win').getChildByName('fg-wei-confirm').active = false;
                         
-                        this.battGroup.getChildByName('b11').getChildByName('fg-punish-destroy').active = true;
+                        if(data.punishment_type == 4){
+                            this.battGroup.getChildByName('b11').getChildByName('win').getChildByName('fg-punish-add-img').active = true;
+                        }
+                        else{
+                            this.battGroup.getChildByName('b11').getChildByName('fg-punish-destroy').active = true;
+                        }
                     }
 
                 }
@@ -787,6 +803,10 @@ cc.Class({
                
             battscene.getChildByName('btn-again-yiju').active = true;
 
+            if(this.other.batype == 4){
+                battscene.getChildByName('win').getChildByName('fg-wei-confirm').active = false;
+                battscene.getChildByName('win').getChildByName('fg-punish-add-img').active = true;
+            }
             
             
         }
