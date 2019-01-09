@@ -154,18 +154,20 @@ cc.Class({
     },
     playIng(){
         if(this.isPlay || (this.countjh == 0)) return;
-        this.countjh --;
-        switch (this.countjh) {
-            case 2:
-                this.countNode.getComponent(cc.Sprite).spriteFrame = this.twojs;
-                break;
-            case 1:
-                this.countNode.getComponent(cc.Sprite).spriteFrame = this.onejs;
-                break;
-            case 0:
-                this.countNode.getComponent(cc.Sprite).spriteFrame = this.zreojs;
-                this.yaoBtn.active = false
-                break;
+        if(common.isDiceFight){
+            this.countjh --;
+            switch (this.countjh) {
+                case 2:
+                    this.countNode.getComponent(cc.Sprite).spriteFrame = this.twojs;
+                    break;
+                case 1:
+                    this.countNode.getComponent(cc.Sprite).spriteFrame = this.onejs;
+                    break;
+                case 0:
+                    this.countNode.getComponent(cc.Sprite).spriteFrame = this.zreojs;
+                    this.yaoBtn.active = false
+                    break;
+            }
         }
         this.isPlay = true;
         if(this.changeCount == this.diceCount){

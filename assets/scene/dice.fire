@@ -41,8 +41,8 @@
     },
     "_scale": {
       "__type__": "cc.Vec3",
-      "x": 0.534375,
-      "y": 0.534375,
+      "x": 0.452989447787173,
+      "y": 0.452989447787173,
       "z": 1
     },
     "_quat": {
@@ -60,7 +60,7 @@
   {
     "__type__": "cc.Node",
     "_name": "Canvas",
-    "_objFlags": 0,
+    "_objFlags": 512,
     "_parent": {
       "__id__": 1
     },
@@ -984,8 +984,8 @@
     },
     "_scale": {
       "__type__": "cc.Vec3",
-      "x": 0.7,
-      "y": 0,
+      "x": 1,
+      "y": 1,
       "z": 1
     },
     "_rotationX": 0,
@@ -1163,7 +1163,9 @@
     "playersMaskTop": {
       "__id__": 56
     },
-    "countNode": null,
+    "countNode": {
+      "__id__": 10
+    },
     "threejs": {
       "__uuid__": "78e05afa-2375-4c4c-bb94-a327f23d3229"
     },
@@ -2657,8 +2659,8 @@
     "_isAbsHorizontalCenter": true,
     "_isAbsVerticalCenter": true,
     "_originalWidth": 0,
-    "_originalHeight": 960,
-    "_id": "71NegnAjJELr983D9u4S0S"
+    "_originalHeight": 0,
+    "_id": "58JtU7+RlA+6IC7F6AYu4E"
   },
   {
     "__type__": "cc.Node",
