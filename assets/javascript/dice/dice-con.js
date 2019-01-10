@@ -97,6 +97,9 @@ cc.Class({
             case 'rspGetRooms':
                 this.rspGetRooms(data)
                 break;   //rspGetRoom
+            case 'rspOutRooms':
+                this.rspOutRooms(data);
+                break;
         }
     },
     onopen (data) {
@@ -299,12 +302,7 @@ cc.Class({
         if(data.rspLogin.code == 200){
             console.warn("dice-con登录" + data.rspLogin.msg);
             wx.setStorageSync('openId', data.rspLogin.user.openid);
-            if(this.isJoin){
-                this.joinRoom();
-            }
-            else{
-                this.reqCreateRoom();
-            }
+            this.OutRooms();
         }
         else{
             this.islogin = false;
@@ -325,6 +323,39 @@ cc.Class({
                    
                 }
             })
+        }
+    },
+    //退出房间
+    OutRooms(){
+        if(io.readyState == 1){
+            let reqOutRoom = pb.ReqOutRoom.create({
+                userid:""
+            });
+            let message = pb.OutRooms.create({
+                reqOutRoom
+            })
+            var bytes =  pb.OutRooms.encode(message).finish(); //获取二进制数据，一定要注意使用finish函数
+            io.send(bytes, "OutRooms")
+        }
+        else if(io.readyState == 0){
+            cc.director.loadScene("index");
+        }
+    },
+    // //退出房间回调
+    rspOutRooms(data){
+        data =  pb.OutRooms.decode(data.buf);
+        if(data.rspOutRoom.code == 200){
+            console.warn("dice-scene退出房间" + data.rspOutRoom.msg);
+            if(this.isJoin){
+                this.joinRoom();
+            }
+            else{
+                this.reqCreateRoom();
+            }
+           
+        }
+        else{
+            console.warn("dice-scene退出房间失败,code=" + data.rspOutRoom.code);
         }
     },
     //创建房间
@@ -544,5 +575,6 @@ cc.Class({
         onfire.un("onmessage");
         onfire.un("onopen");
         onfire.un("onclose");
+        onfire.un("onerror");
     },
 });

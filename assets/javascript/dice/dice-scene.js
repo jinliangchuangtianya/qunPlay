@@ -1,4 +1,3 @@
-
 let io = require("../utils/websocket");
 let {pb} =  require("../utils/proto");
 let common = require('../common/common');
@@ -38,6 +37,7 @@ cc.Class({
     // LIFE-CYCLE CALLBACKS:
 
     onLoad () {
+        this.isClick = true;
         this.startStage = 1;   //开始按钮的状态
         this.countjh = 3;
         if(window.wx){
@@ -64,11 +64,11 @@ cc.Class({
             this.players = [];   //初始化当前游戏玩家的数组集合 type => prefab
            
             this.timer = null;
+            
             this.border.active = this.goIndexBtn.active = false;
             this.okBnt.active = true;
             this.isReady = false;  //选好了
             this.alignPlay = false; //重新开始
-            this.Ping();
 
             this.okBnt.on('touchstart', this.Dice, this);
             this.exitBtn.on('touchstart', this.OutRooms, this)
@@ -79,6 +79,18 @@ cc.Class({
             this.onmessageFire = onfire.on("onmessage",this.onMessage.bind(this));
             onfire.on("onopen",this.onopen.bind(this));
             onfire.on("onclose",this.onclose.bind(this));
+            onfire.on("onerror",this.onerror.bind(this));
+
+            wx.onShow(()=>{
+                if(!this.isClick){
+                    io.connect();
+                }
+            })
+            wx.onHide(()=>{
+                this.isClick = false;
+                io.readyState = 0;
+                io.close();
+            })
         }
         else{
             this.border.active = this.goIndexBtn.active = true;
@@ -153,7 +165,22 @@ cc.Class({
         this.diceLabel.string = this.changeCount;
     },
     playIng(){
-        if(this.isPlay || (this.countjh == 0)) return;
+        if(!!this.isRoomOver){
+            wx.showModal({
+                title: '提示',
+                content: '房间已经解散',
+                showCancel:false,
+                success(res) {
+                    io.readyState = 0;
+                    io.close();
+                    common.opt = {};
+                    common.diceRommInfo = null;
+                    cc.director.loadScene('index');
+                }
+              })
+            return;
+        }
+        if(this.isPlay || (this.countjh == 0) || !this.isClick ) return; 
         if(common.isDiceFight){
             this.countjh --;
             switch (this.countjh) {
@@ -289,6 +316,7 @@ cc.Class({
         this.login();
     },
     onclose(err){
+        clearInterval(this.timer);
         console.warn(err, "dice-scene 链接关闭")
         if(io.readyState == 1){
             io.readyState = 0;
@@ -297,6 +325,7 @@ cc.Class({
         }
     },
     onerror(){
+        clearInterval(this.timer);
         let _this = this;
         wx.showModal({
             title:"提示",
@@ -316,23 +345,23 @@ cc.Class({
     },
     //心跳
     Ping(){
-        // this.timer = setInterval(()=>{
-        //     let message = pb.Ping.create()
-        //     var bytes =  pb.Ping.encode(message).finish(); //获取二进制数据，一定要注意使用finish函数
-        //     io.send(bytes, "Ping")
-        // },2000)
+        this.timer = setInterval(()=>{
+            let message = pb.Ping.create()
+            var bytes =  pb.Ping.encode(message).finish(); //获取二进制数据，一定要注意使用finish函数
+            io.send(bytes, "Ping")
+        },1000)
     },
     rspPing(data){//待登陆，如果有心跳，跳到登陆界面
-        data =  pb.Ping.decode(data.buf);
-        if(!data.pong){
-            clearInterval(this.timer);
-            if(io.readyState == 1){
-                io.readyState = 0;
-                io.close();
-                io.connect();
-            }
+        // data =  pb.Ping.decode(data.buf);
+        // if(!data.pong){
+        //     clearInterval(this.timer);
+        //     if(io.readyState == 1){
+        //         io.readyState = 0;
+        //         io.close();
+        //         io.connect();
+        //     }
             
-        }
+        // }
     },
     //登录
     login(){
@@ -358,15 +387,14 @@ cc.Class({
     //登录回调
     rspLogin(data){
         let _this = this;
-        wx.hideLoading();
         data =  pb.Login.decode(data.buf);
         console.warn(data, 'dice-scene登录回调')
         if(data.rspLogin.code == 200){
             console.warn("dice-scene登录" + data.rspLogin.msg);
-            this.Ping();
             this.GetRooms();
         }
         else{
+            wx.hideLoading();
             console.warn("dice-scene登录失败");
             wx.showModal({
                 title:"提示",
@@ -410,9 +438,15 @@ cc.Class({
     rspGetRooms(data){
         data = pb.GetRooms.decode(data.buf);
         if(data.rspGetRoom.code == 200){
-            console.warn('重新连接成功')
+            console.warn('重新连接成功');
+            this.isRoomOver = true;
+            setTimeout(()=>{
+                this.isClick = true;
+                wx.hideLoading();
+            },2000)
         }
         else{
+            wx.hideLoading();
             let _this = this;
             wx.showModal({
                 title:"提示",
@@ -441,6 +475,21 @@ cc.Class({
     },
     //发送我的骰子信息
     Dice(){
+        if(!!this.isRoomOver){
+            wx.showModal({
+                title: '提示',
+                content: '房间已经解散',
+                showCancel:false,
+                success(res) {
+                    io.readyState = 0;
+                    io.close();
+                    common.opt = {};
+                    common.diceRommInfo = null;
+                    cc.director.loadScene('index');
+                }
+              })
+            return;
+        }
         if( this.startStage == 3){
             this.wait.zIndex = this.exitBtn.zIndex = 89;
             this.wait.active = this.exitBtn.active = true;
@@ -571,7 +620,7 @@ cc.Class({
         for(let i=0; i<this.players.length; i++){
             this.players[i].getChildByName('dices').opacity = 255;
         }
-
+        this.Ping();
         // for(let i=0; i<this.layersTopArr.length; i++){
         //     this.layersTopArr[i].stage = 3;
         //     this.layersTopArr[i].getComponent('playeritemTop').changeMask('waitIng')
@@ -589,6 +638,7 @@ cc.Class({
     },
     //开始游戏
     gamePlay(){
+        clearInterval(this.timer);
         let message = pb.GamePlay.create()
         var bytes =  pb.GamePlay.encode(message).finish(); //获取二进制数据，一定要注意使用finish函数
         console.warn('GamePlayGamePlayGamePlayGamePlayGamePlay')
@@ -602,6 +652,7 @@ cc.Class({
     },
      //监听
      rspDice(data){
+        this.isRoomOver = false;
         if(this.alignPlay == true ){
             this.playIng();
             this.alignPlay = false; 
@@ -656,11 +707,13 @@ cc.Class({
     },
       onDestroy:function(){
           if(common.isDiceFight){
+            clearInterval(this.timer);
             common.isDiceFight = false;
             wx.hideLoading();
             onfire.un("onmessage");
             onfire.un("onopen");
             onfire.un("onclose");
+            onfire.un("onerror");
             if(io.readyState == 1){
                 //停止进程非正常退出,此处应该先退出游戏
                 this.OutRooms();
