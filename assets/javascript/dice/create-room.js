@@ -107,6 +107,7 @@ cc.Class({
             io.send(bytes, "Login")
         }
         else{
+            wx.hideLoading();
             wx.showModal({
                 title:"提示",
                 content: '已与服务器断开连接，您可以手动重连',
@@ -135,6 +136,7 @@ cc.Class({
             this.OutRooms();
         }
         else{
+            wx.hideLoading();
             this.islogin = false;
             wx.showModal({
                 title:"提示",
@@ -162,6 +164,7 @@ cc.Class({
         if(io.readyState == 1){
             this.ischangeHandle = true;
             io.readyState = 0;
+            io.close();
             common.opt.query = {
                 roomid:common.diceRommInfo.roomId
             }
@@ -209,6 +212,7 @@ cc.Class({
                 io.send(bytes, "OutRooms")
             }
             else if(io.readyState == 0){
+                wx.hideLoading();
                 cc.director.loadScene("index")
             }
         //}
@@ -223,6 +227,7 @@ cc.Class({
             io.readyState = 0;
             io.close();
             if( !this.resLodin ){
+                wx.hideLoading();
                 common.opt = {};
                 common.diceRommInfo = null;
                 cc.director.loadScene("index")
@@ -236,6 +241,7 @@ cc.Class({
             }
         }
         else{
+            wx.hideLoading();
             console.warn("退出房间失败,code=" + data.rspOutRoom.code);
         }
     },

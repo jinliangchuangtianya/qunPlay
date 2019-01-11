@@ -37,7 +37,6 @@ cc.Class({
     // LIFE-CYCLE CALLBACKS:
 
     onLoad () {
-        this.isClick = true;
         this.startStage = 1;   //开始按钮的状态
         this.countjh = 3;
         if(window.wx){
@@ -54,6 +53,8 @@ cc.Class({
             })
         }
         if(common.isDiceFight){
+            this.isOutRooms = false;
+            //common.diceShowHide = true;
             this.countNode.active = true;
             this.playersCount = Object.keys(common.diceRommInfo.userinfo).length;
             // this.layersTopArr = []; //显示玩家提示信息 type => prefab
@@ -81,16 +82,18 @@ cc.Class({
             onfire.on("onclose",this.onclose.bind(this));
             onfire.on("onerror",this.onerror.bind(this));
 
-            wx.onShow(()=>{
-                if(!this.isClick){
-                    io.connect();
-                }
-            })
-            wx.onHide(()=>{
-                this.isClick = false;
-                io.readyState = 0;
-                io.close();
-            })
+            // wx.onShow(()=>{
+            //     //if(!common.diceShowHide) return;
+            //     // if(!this.isClick){
+            //     //     io.connect();
+            //     // }
+            // })
+            // wx.onHide(()=>{
+            //     //if(!common.diceShowHide) return;
+            //     this.isClick = false;
+            //     // io.readyState = 0;
+            //     // io.close();
+            // })
         }
         else{
             this.border.active = this.goIndexBtn.active = true;
@@ -180,7 +183,7 @@ cc.Class({
               })
             return;
         }
-        if(this.isPlay || (this.countjh == 0) || !this.isClick ) return; 
+        if(this.isPlay || (this.countjh == 0) ) return; 
         if(common.isDiceFight){
             this.countjh --;
             switch (this.countjh) {
@@ -321,6 +324,7 @@ cc.Class({
         if(io.readyState == 1){
             io.readyState = 0;
             console.warn('dice-scene断线重连');
+            this.isOutRooms = false;
             io.connect();
         }
     },
@@ -334,10 +338,13 @@ cc.Class({
             confirmText:'继续连接',
             success(res){
                 if (res.confirm) {
+                    _this.isOutRooms = false;
                     io.connect();
                 } else if (res.cancel) {
-                    common.opt = {};
-                    cc.director.loadScene('index');
+                    _this.isOutRooms = true;
+                    io.connect();
+                    // common.opt = {};
+                    // cc.director.loadScene('index');
                 }
                
             }
@@ -352,21 +359,22 @@ cc.Class({
         },1000)
     },
     rspPing(data){//待登陆，如果有心跳，跳到登陆界面
-        // data =  pb.Ping.decode(data.buf);
-        // if(!data.pong){
-        //     clearInterval(this.timer);
-        //     if(io.readyState == 1){
-        //         io.readyState = 0;
-        //         io.close();
-        //         io.connect();
-        //     }
-            
-        // }
+        data =  pb.Ping.decode(data.buf);
+        if(data.pong){
+            this.isRoomOver = false;
+        }
     },
     //登录
     login(){
+        let title;
+        if(!this.isOutRooms){
+            title = '正在重新连接...';
+        }
+        else{
+            title = '退出房间...';
+        }
         wx.showLoading({
-            title: '正在重新连接...',
+            title: title,
             mask:true
         })
 
@@ -391,7 +399,13 @@ cc.Class({
         console.warn(data, 'dice-scene登录回调')
         if(data.rspLogin.code == 200){
             console.warn("dice-scene登录" + data.rspLogin.msg);
-            this.GetRooms();
+            if(this.isOutRooms){
+                this.OutRooms();
+            }
+            else{
+                this.GetRooms();
+            }
+            
         }
         else{
             wx.hideLoading();
@@ -403,6 +417,7 @@ cc.Class({
                 confirmText:'继续连接',
                 success(res){
                     if (res.confirm) {
+                        _this.isOutRooms = false
                         if(io.readyState == 1){
                             _this.login();
                         }
@@ -410,11 +425,20 @@ cc.Class({
                             io.connect();
                         }
                     } else if (res.cancel) {
-                        io.readyState = 0;
-                        io.close();
-                        common.opt = {};
-                        common.diceRommInfo = null;
-                        cc.director.loadScene('index');
+                        _this.isOutRooms = true;
+                        if(io.readyState == 1){
+                            _this.login();
+                        }
+                        else{
+                            io.connect();
+                        }
+                        // this.isOutRooms = true
+                        // // io.readyState = 0;
+                        // // io.close();
+                        // // common.opt = {};
+                        // // common.diceRommInfo = null;
+                        // // cc.director.loadScene('index');
+                        // io.connect();
                     }
                    
                 }
@@ -441,7 +465,6 @@ cc.Class({
             console.warn('重新连接成功');
             this.isRoomOver = true;
             setTimeout(()=>{
-                this.isClick = true;
                 wx.hideLoading();
             },2000)
         }
@@ -455,6 +478,7 @@ cc.Class({
                 confirmText:'继续连接',
                 success(res){
                     if (res.confirm) {
+                        _this.isOutRooms = false;
                         if(io.readyState == 1){
                             _this.login();
                         }
@@ -462,11 +486,19 @@ cc.Class({
                             io.connect();
                         }
                     } else if (res.cancel) {
-                        io.readyState = 0;
-                        io.close();
-                        common.opt = {};
-                        common.diceRommInfo = null;
-                        cc.director.loadScene('index');
+                        _this.isOutRooms = true;
+                        if(io.readyState == 1){
+                            _this.login();
+                        }
+                        else{
+                            io.connect();
+                        }
+                        // this.isOutRooms = true;
+                        // io.readyState = 0;
+                        // io.close();
+                        // common.opt = {};
+                        // common.diceRommInfo = null;
+                        // cc.director.loadScene('index');
                     }
                    
                 }
@@ -573,9 +605,25 @@ cc.Class({
         let _this = this;
         data =  pb.JoinRoom.decode(data.buf);
         if(data.rspJoinRoom.code == 200){
-            console.warn("dice-scene 新成员加入" + data.rspJoinRoom.msg);
+            console.warn("dice-scene 新成员加入" , data);
             common.diceRommInfo =  data.rspJoinRoom.roominfo;
             this.playersCount = Object.keys(common.diceRommInfo.userinfo).length;
+
+            if( this.playersCount <= 1){
+                console.warn("create-room, 都退出了");
+               
+                wx.showModal({
+                    title:"提示",
+                    content: '好友成员都退出了,房间解散',
+                    showCancel:false,
+                    success(res){
+                        _this.OutRooms();
+                    }
+                })
+                return;
+            }
+
+           
 
             let userStatus = common.diceRommInfo.userStatus;
             for(let attr in userStatus){
@@ -590,19 +638,6 @@ cc.Class({
                 }
             }
 
-            if( this.playersCount <= 1){
-                console.warn("create-room, 都退出了");
-               
-                wx.showModal({
-                    title:"提示",
-                    content: '好友成员都退出了,房间解散',
-                    showCancel:false,
-                    success(res){
-                        _this.OutRooms();
-                    }
-                })
-            }
-            
         }
         else{
             console.warn("加入房间失败,code=" + data.rspJoinRoom.code);
@@ -706,6 +741,7 @@ cc.Class({
         }
     },
       onDestroy:function(){
+          //common.diceShowHide = false;
           if(common.isDiceFight){
             clearInterval(this.timer);
             common.isDiceFight = false;
