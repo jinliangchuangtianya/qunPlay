@@ -60,7 +60,7 @@
   {
     "__type__": "cc.Node",
     "_name": "Canvas",
-    "_objFlags": 0,
+    "_objFlags": 512,
     "_parent": {
       "__id__": 1
     },
@@ -1127,7 +1127,7 @@
   {
     "__type__": "cc.Node",
     "_name": "rankingView",
-    "_objFlags": 512,
+    "_objFlags": 0,
     "_parent": {
       "__id__": 2
     },
@@ -1160,8 +1160,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 400,
-      "height": 500
+      "width": 550,
+      "height": 700
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -1221,8 +1221,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 400,
-      "height": 500
+      "width": 550,
+      "height": 700
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -1313,8 +1313,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 400,
-      "height": 500
+      "width": 550,
+      "height": 700
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -1423,8 +1423,8 @@
     },
     "_position": {
       "__type__": "cc.Vec3",
-      "x": 203,
-      "y": 229,
+      "x": 267,
+      "y": 330,
       "z": 0
     },
     "_scale": {
