@@ -29,7 +29,7 @@
   "title": "qunPlay",
   "webOrientation": "auto",
   "wechatgame": {
-    "REMOTE_SERVER_ROOT": "https://jx-game.oss-cn-beijing.aliyuncs.com/qunPlay",
+    "REMOTE_SERVER_ROOT": "https://jx-game.oss-cn-beijing.aliyuncs.com/qunPlay/Dev",
     "appid": "wxe497bf8b21a2cdb4",
     "isSubdomain": false,
     "orientation": "portrait",
