@@ -19,7 +19,17 @@ cc.Class({
         exitBtn:cc.Node
     },
     onLoad () {
-         
+        wx.showShareMenu({
+            withShareTicket: true
+          })
+        wx.onShareAppMessage(()=>{
+            return{
+                title:"一起玩骰子",
+                imageUrl:"https://jx-game.oss-cn-beijing.aliyuncs.com/qunPlay/img/share.jpg",
+                query:"share=true&sceneto=dice-con"
+            }
+        }) 
+        this.timer = null;
         //初始化筛子数量为6
         this.diceCount = 6;
         this.addBtn.opacity = 76;
@@ -104,11 +114,22 @@ cc.Class({
     },
     onopen (data) {
         console.warn(data, "dice-con 链接打开成功");
+        this.ping();
         if(!!this.isGetRooms){
             this.GetRooms(common.opt.query.roomid);
         }
     },
+     //心跳
+     ping(){
+        clearInterval(this.timer);
+        this.timer = setInterval(()=>{
+            let message = pb.Ping.create();
+            var bytes =  pb.Ping.encode(message).finish(); //获取二进制数据，一定要注意使用finish函数
+            io.send(bytes, "Ping")
+        },1000)
+    },
     onerror(){
+        clearInterval(this.timer);
         let _this = this;
         wx.showModal({
             title:"提示",
@@ -127,6 +148,7 @@ cc.Class({
         })
     },
     onclose(err){
+        clearInterval(this.timer);
         console.warn(err, "dice-con 链接关闭");
         if(io.readyState == 1){
             io.readyState = 0;
@@ -568,6 +590,7 @@ cc.Class({
         });
     },
     onDestroy:function(){
+        clearInterval(this.timer);
         if(!!this.btnAuthorize){
             this.btnAuthorize.style.hidden = true;
         }
