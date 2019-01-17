@@ -1,5 +1,5 @@
 let netConfig = {
-    uri : "wss://zhayizha.jixiang.cn",
+    uri : "wss://muyu.jixiang.cn",
     pbIndex : { //端序，由服务器提供
         0:"Ping","Ping":0,
         1:"Login","Login":1,
